@@ -42,4 +42,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+        public function rooms()
+    {
+        return $this->belongsToMany(ChatRoom::class, 'room_user', 'user_id', 'room_id')
+                    ->withTimestamps();
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
 }
