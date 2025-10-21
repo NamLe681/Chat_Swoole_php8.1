@@ -3,12 +3,16 @@ import './bootstrap';
 import { createApp } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import store from './store';
+import App from './App.vue';
 import ChatApp from './components/ChatApp.vue';
+import Login from './components/Login.vue';
+import RegisterComponent from './components/RegisterComponent.vue';
+import axios from 'axios';
 
-// Tạo CSRF token cho tất cả request axios
+// Tạo CSRF token cho axios
 const token = document.head.querySelector('meta[name="csrf-token"]');
 if (token) {
-    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
 } else {
     console.error('CSRF token not found');
 }
@@ -18,24 +22,44 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            path: '/',
-            component: ChatApp
+            path: '/login',
+            component: Login,
+        },
+        {
+            path: '/register',
+            component: RegisterComponent,
+        },
+        {
+            path: '/chatapp',
+            component: ChatApp,
         }
     ]
 });
 
-// Tạo app Vue
-const app = createApp({});
+// Kiểm tra xác thực trước khi chuyển hướng
+router.beforeEach(async (to, from, next) => {
+    if (to.meta.requiresAuth) {
+        const user = store.getters.currentUser;
+        if (!user) {
+            try {
+                await store.dispatch('fetchCurrentUser');
+                if (!store.getters.currentUser) {
+                    return next('/login');
+                }
+            } catch (error) {
+                return next('/login');
+            }
+        }
+    }
+    next();
+});
 
-// Đăng ký component
-app.component('chat-app', ChatApp);
-
-// Sử dụng Vuex và router
+// Tạo app Vue và mount
+const app = createApp(App);
 app.use(store);
 app.use(router);
-
-// Mount app
 app.mount('#app');
 
-// Lấy thông tin người dùng hiện tại nếu đã đăng nhập
+console.log('Vue app mounted');
+
 store.dispatch('fetchCurrentUser');

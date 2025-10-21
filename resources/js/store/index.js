@@ -76,13 +76,56 @@ export default createStore({
     },
     
     actions: {
+        // store/index.js
+        async login({ commit }, credentials) {
+            try {
+                // 1. Lấy CSRF cookie trước
+                await axios.get('/sanctum/csrf-cookie');
+                
+                // 2. Đăng nhập
+                await axios.post('/login', credentials);
+                
+                // 3. Sau đó lấy thông tin user
+                const response = await axios.get('/api/user');
+                commit('SET_USER', response.data);
+                return response.data;
+            } catch (error) {
+                console.error('Lỗi đăng nhập:', error);
+                throw error;
+            }
+        },
+
+        async register({ commit }, userData) {
+            try {
+                // 1. Lấy CSRF cookie trước
+                await axios.get('/sanctum/csrf-cookie');
+                
+                // 2. Đăng nhập
+                await axios.post('/register', userData);
+               
+               const response = await axios.get('/api/user');
+                commit('SET_USER', response.data);
+                return response.data;
+            } catch (error) {
+                console.error('Lỗi đăng Ký:', error);
+                throw error;
+            }
+        },
+
+        // store/index.js
         async fetchCurrentUser({ commit }) {
             try {
                 const response = await axios.get('/api/user');
                 commit('SET_USER', response.data);
                 return response.data;
             } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    console.log('Người dùng chưa đăng nhập');
+                    commit('SET_USER', null);
+                    return null;
+                }
                 console.error('Lỗi lấy thông tin user:', error);
+                throw error;
             }
         },
         

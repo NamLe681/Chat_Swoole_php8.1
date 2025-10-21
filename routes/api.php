@@ -27,3 +27,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
     Route::get('rooms/{room}/messages', 'App\Http\Controllers\API\RoomController@messages');
 });
+
+Route::post('/register', 'App\Http\Controllers\API\RegisterController@register');
