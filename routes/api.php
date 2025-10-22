@@ -14,18 +14,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
 // routes/api.php
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-    
-    Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
-    Route::get('rooms/{room}/messages', 'App\Http\Controllers\API\RoomController@messages');
-});
-
+Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
+Route::get('rooms/{room}/messages', 'App\Http\Controllers\API\RoomController@messages');
 Route::post('/register', 'App\Http\Controllers\API\RegisterController@register');
+Route::post('/login', 'App\Http\Controllers\API\LoginController@login');
+Route::post('/logout', 'App\Http\Controllers\API\LoginController@logout');

@@ -79,33 +79,24 @@ export default createStore({
         // store/index.js
         async login({ commit }, credentials) {
             try {
-                // 1. Lấy CSRF cookie trước
                 await axios.get('/sanctum/csrf-cookie');
-                
-                // 2. Đăng nhập
-                await axios.post('/login', credentials);
-                
-                // 3. Sau đó lấy thông tin user
-                const response = await axios.get('/api/user');
-                commit('SET_USER', response.data);
-                return response.data;
+        
+                const response = await axios.post('/api/login', credentials, { withCredentials: true });
+        
+                commit('SET_USER', response.data.user); 
+                return response.data.user;
             } catch (error) {
-                console.error('Lỗi đăng nhập:', error);
+                console.error('Lỗi đăng nhập:', error.response?.data || error);
                 throw error;
             }
         },
 
         async register({ commit }, userData) {
+
             try {
-                // 1. Lấy CSRF cookie trước
                 await axios.get('/sanctum/csrf-cookie');
                 
-                // 2. Đăng nhập
-                await axios.post('/register', userData);
-               
-               const response = await axios.get('/api/user');
-                commit('SET_USER', response.data);
-                return response.data;
+                await axios.post('/api/register', userData);
             } catch (error) {
                 console.error('Lỗi đăng Ký:', error);
                 throw error;
@@ -130,7 +121,7 @@ export default createStore({
         },
         
         logout({ commit }) {
-            return axios.post('/logout').then(() => {
+            return axios.post('/api/logout').then(() => {
                 commit('SET_USER', null);
                 websocketService.disconnect();
             });
@@ -151,10 +142,9 @@ export default createStore({
             if (!state.user) {
                 throw new Error('User chưa đăng nhập');
             }
-            
+            console.log('aaa',state.user)
             try {
                 await websocketService.connect(state.user.id);
-                
                 websocketService.onMessage((data) => {
                     switch (data.type) {
                         case 'join_room_success':

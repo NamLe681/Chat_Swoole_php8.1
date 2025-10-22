@@ -1,7 +1,7 @@
 <!-- resources/js/components/Login.vue -->
 <template>
     <div class="login-form">
-      <h2>Đăng nhập để sử dụng chat app</h2>
+      <h2>Đăng Ký để sử dụng chat app</h2>
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
@@ -43,6 +43,7 @@
         
         try {
           await this.$store.dispatch('register', this.form);
+          console.log('register', this.form);
           this.$router.push('/login');
         } catch (error) {
           this.error = 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.';
