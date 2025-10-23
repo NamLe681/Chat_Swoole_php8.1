@@ -79,17 +79,24 @@ export default createStore({
         // store/index.js
         async login({ commit }, credentials) {
             try {
-                await axios.get('/sanctum/csrf-cookie');
+                const response = await axios.post('/api/login', credentials);
         
-                const response = await axios.post('/api/login', credentials, { withCredentials: true });
+                const token = response.data.token;
         
-                commit('SET_USER', response.data.user); 
+                // Lưu token (localStorage / Vuex)
+                localStorage.setItem('auth_token', token);
+        
+                // Set default header cho Axios
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+                commit('SET_USER', response.data.user);
                 return response.data.user;
             } catch (error) {
                 console.error('Lỗi đăng nhập:', error.response?.data || error);
                 throw error;
             }
         },
+        
 
         async register({ commit }, userData) {
 
@@ -121,11 +128,28 @@ export default createStore({
         },
         
         logout({ commit }) {
-            return axios.post('/api/logout').then(() => {
+            const token = localStorage.getItem('auth_token');
+        
+            if (!token) return;
+        
+            return axios.post('/api/logout', null, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json'
+                }
+            }).then(() => {
                 commit('SET_USER', null);
-                websocketService.disconnect();
+                localStorage.removeItem('auth_token');
+                delete axios.defaults.headers.common['Authorization'];
             });
         },
+
+        async createRoom({ commit, dispatch }, roomData) {
+            const response = await axios.post('/api/rooms', roomData);
+            commit('setRooms', [...state.rooms, response.data]);
+            return response.data;
+        },
+        
         
         async fetchRooms({ commit }) {
             try {

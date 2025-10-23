@@ -21,3 +21,6 @@ Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*');
 
+Route::get('/login', function () {
+    return 'Login page';
+})->name('login');

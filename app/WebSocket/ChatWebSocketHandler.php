@@ -20,8 +20,8 @@ class ChatWebSocketHandler implements HandlerContract
     public function connect(Request $request, int $fd)
     {
         // Kiểm tra xác thực
-        $userId = $request->query('user_id');
-        $user = User::find($userId);
+        $userID = $request->query('id');
+        $user = User::find($userID);
         
         if (!$user) {
             return false;

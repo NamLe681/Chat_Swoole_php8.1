@@ -21,16 +21,11 @@ class RoomController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $sampleUser = User::firstOrCreate([
-            'email' => 'sample@example.com',
-        ], [
-            'name' => 'Sample User',
-            'password' => bcrypt('password'),
-        ]);
+        $user = Auth() -> user();
 
         $room = ChatRoom::create($validated);
 
-        $room->users()->attach($sampleUser->id);
+        $room->users()->attach($user->id);
 
         return response()->json($room->loadCount('users'), 201);
     }
