@@ -83,10 +83,8 @@ export default createStore({
         
                 const token = response.data.token;
         
-                // Lưu token (localStorage / Vuex)
                 localStorage.setItem('auth_token', token);
         
-                // Set default header cho Axios
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
                 commit('SET_USER', response.data.user);
@@ -162,51 +160,57 @@ export default createStore({
             }
         },
         
-        async connectWebSocket({ commit, state }) {
-            if (!state.user) {
-                throw new Error('User chưa đăng nhập');
+        async connectWebSocket({ state, commit }) {
+            if (!window.Echo) {
+                console.error('Echo is not initialized');
+                return;
             }
-            console.log('aaa',state.user)
-            try {
-                await websocketService.connect(state.user.id);
-                websocketService.onMessage((data) => {
-                    switch (data.type) {
-                        case 'join_room_success':
-                            commit('SET_CURRENT_ROOM', data.room);
-                            commit('SET_MESSAGES', { 
-                                roomId: data.room.id, 
-                                messages: data.messages 
-                            });
-                            break;
-                        
-                        case 'new_message':
-                            commit('ADD_MESSAGE', {
-                                roomId: data.room_id,
-                                message: data.message,
-                            });
-                            break;
-                        
-                        case 'user_joined':
-                            commit('ADD_ONLINE_USER', {
-                                roomId: data.room_id,
-                                user: data.user,
-                            });
-                            break;
-                        
-                        case 'user_left':
-                            commit('REMOVE_ONLINE_USER', {
-                                roomId: data.room_id,
-                                userId: data.user.id,
-                            });
-                            break;
-                    }
+            console.log('Connecting to presence channel:', `presence-chat.${state.currentRoom?.id}`);
+            await axios.get('/sanctum/csrf-cookie');
+            const roomId = this.currentRoomId || 1; // Lấy từ Vuex, component, hoặc API
+            if (!roomId) {
+                console.error('Room ID is undefined');
+                return;
+            }
+            console.log('Joining channel: presence-chat.' + roomId);
+            window.Echo.join(`presence-chat.${roomId}`)
+                .here((users) => { console.log('Users:', users); })
+                .joining((user) => { console.log('Joining:', user); })
+                .leaving((user) => { console.log('Leaving:', user); })
+                .error((error) => { console.error('Echo join error:', error); })
+                .here((users) => {
+                    commit('setOnlineUsers', {
+                        roomId: state.currentRoom.id,
+                        users,
+                    });
+                    console.log('Users in room:', users);
+                })
+                .joining((user) => {
+                    commit('setOnlineUsers', {
+                        roomId: state.currentRoom.id,
+                        users: [...state.onlineUsers[state.currentRoom.id], user],
+                    });
+                    console.log('User joined:', user);
+                })
+                .leaving((user) => {
+                    commit('setOnlineUsers', {
+                        roomId: state.currentRoom.id,
+                        users: state.onlineUsers[state.currentRoom.id].filter(
+                            (u) => u.id !== user.id
+                        ),
+                    });
+                    console.log('User left:', user);
+                })
+                .listen('ChatMessageEvent', (e) => {
+                    commit('addMessage', {
+                        roomId: state.currentRoom.id,
+                        message: e.message,
+                    });
+                    console.log('Message received:', e.message);
+                })
+                .error((error) => {
+                    console.error('Echo error:', error);
                 });
-                
-                return true;
-            } catch (error) {
-                console.error('Lỗi kết nối WebSocket:', error);
-                throw error;
-            }
         },
         
         joinRoom({ commit }, roomId) {

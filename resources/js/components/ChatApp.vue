@@ -193,16 +193,16 @@
       
       const handleLogin = async () => {
         try {
-          loginError.value = '';
+            loginError.value = '';
           await store.dispatch('login', loginForm.value);
-          await store.dispatch('fetchRooms');
+            await store.dispatch('fetchRooms');
           await store.dispatch('connectWebSocket');
-          loginForm.value = { email: '', password: '' };
+            loginForm.value = { email: '', password: '' };
         } catch (error) {
-          loginError.value = 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.';
-          console.error('Lỗi đăng nhập:', error);
+            loginError.value = 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.';
+            console.error('Lỗi đăng nhập:', error);
         }
-      };
+    };
       
       const handleLogout = () => {
         if (currentRoom.value) {
@@ -219,7 +219,7 @@
           selectRoom(room.id);
         } catch (error) {
           console.error('Lỗi tạo phòng:', error);
-          alert('Không thể tạo phòng. Vui lòng thử lại.');
+          // alert('Không thể tạo phòng. Vui lòng thử lại.');
         }
       };
       
