@@ -1,12 +1,11 @@
 import axios from 'axios';
-import Pusher from 'pusher-js';
 import Echo from 'laravel-echo';
 
-
 window.axios = axios;
-window.axios.defaults.withCredentials = true;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.withCredentials = true; 
 
+// CSRF Token
 const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
 if (csrfToken) {
     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.content;
@@ -14,8 +13,8 @@ if (csrfToken) {
     console.error('CSRF token not found');
 }
 
+import Pusher from 'pusher-js';
 window.Pusher = Pusher;
-window.Pusher.logToConsole = true; // Debug Pusher
 
 window.Echo = new Echo({
     broadcaster: 'reverb',
@@ -26,30 +25,23 @@ window.Echo = new Echo({
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
     enabledTransports: ['ws'],
     disableStats: true,
-    authEndpoint: '/broadcasting/auth',
+    withCredentials: true,
     authorizer: (channel, options) => {
         return {
             authorize: (socketId, callback) => {
-                console.log('Authorizing channel:', channel.name, 'Socket ID:', socketId); // Debug
                 axios.post('/broadcasting/auth', {
                     socket_id: socketId,
                     channel_name: channel.name
-                }, {
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken?.content
-                    }
                 })
                 .then(response => {
-                    console.log('Auth success:', response.data);
-                    callback(null, response.data);
+                    callback(false, response.data);
                 })
                 .catch(error => {
-                    console.error('Auth error:', error.response?.data || error.message);
-                    callback(error, null);
+                    callback(true, error);
                 });
             }
         };
     },
 });
 
-console.log('Echo config:', window.Echo.connector.options);
+console.log('Echo initialized with Reverb');

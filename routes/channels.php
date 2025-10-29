@@ -15,35 +15,33 @@ use App\Models\ChatRoom;
 */
 
 
-Broadcast::channel('presence-chat.{roomId}', function ($user, $roomId) {
-    \Log::info('Authorizing channel', [
-        'channel' => 'presence-chat.' . $roomId,
-        'user_id' => $user ? $user->id : null,
-        'room_id' => $roomId
-    ]);
+// Broadcast::channel('presence-chat.{roomId}', function ($user, $roomId) {
+//     \Log::info('Authorizing channel', [
+//         'channel' => 'presence-chat.' . $roomId,
+//         'user_id' => $user ? $user->id : null,
+//         'room_id' => $roomId
+//     ]);
 
-    if (!$user) {
-        \Log::warning('No authenticated user');
-        return null;
-    }
+//     if (!$user) {
+//         \Log::warning('No authenticated user');
+//         return null;
+//     }
 
-    $room = ChatRoom::find($roomId);
-    if (!$room) {
-        \Log::warning('Room not found', ['room_id' => $roomId]);
-        return null;
-    }
+//     $room = ChatRoom::find($roomId);
+//     if (!$room) {
+//         \Log::warning('Room not found', ['room_id' => $roomId]);
+//         return null;
+//     }
 
-    if (!$room->users()->where('user_id', $user->id)->exists()) {
-        \Log::warning('User not authorized for room', ['user_id' => $user->id, 'room_id' => $roomId]);
-        return null;
-    }
+//     if (!$room->users()->where('user_id', $user->id)->exists()) {
+//         \Log::warning('User not authorized for room', ['user_id' => $user->id, 'room_id' => $roomId]);
+//         return null;
+//     }
 
-    return ['id' => $user->id, 'name' => $user->name];
-});
+//     return ['id' => $user->id, 'name' => $user->name];
+// });
 
-Broadcast::channel('presence-room.{roomId}', function ($user, $roomId) {
-    if ($user && $user->canJoinRoom($roomId)) {
-        return ['id' => $user->id, 'name' => $user->name];
-    }
-    return null;
+Broadcast::channel('presence-chat.{id}', function ($user, $id) {
+    \Log::info('Broadcast auth user:', ['user_id' => $user->id, 'channel_id' => $id]);
+    return  ['id' => $user->id, 'name' => $user->name];
 });

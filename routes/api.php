@@ -28,5 +28,8 @@ Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
 Route::get('rooms/{room}/messages', 'App\Http\Controllers\API\RoomController@messages');
 Route::post('/rooms', 'App\Http\Controllers\API\RoomController@store')->middleware('auth:sanctum');
 Route::post('/register', 'App\Http\Controllers\API\RegisterController@register');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
+Route::middleware(['web'])->group(function () {
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/logout', [LoginController::class, 'logout']);
+});
+

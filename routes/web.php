@@ -24,3 +24,6 @@ Route::get('/{any}', function () {
 Route::get('/login', function () {
     return 'Login page';
 })->name('login');
+
+
+

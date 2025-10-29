@@ -1,228 +1,132 @@
-// resources/js/store/index.js
 import { createStore } from 'vuex';
 import axios from 'axios';
-import websocketService from '../services/websocket';
-
+axios.defaults.withCredentials = true;
 export default createStore({
-    state: {
-        user: null,
-        rooms: [],
-        currentRoom: null,
-        messages: {},
-        onlineUsers: {},
-    },
-    
-    getters: {
-        isAuthenticated: (state) => !!state.user,
-        currentUser: (state) => state.user,
-        rooms: (state) => state.rooms,
-        currentRoom: (state) => state.currentRoom,
-        messages: (state) => (roomId) => state.messages[roomId] || [],
-        onlineUsers: (state) => (roomId) => state.onlineUsers[roomId] || [],
-    },
-    
-    mutations: {
-        SET_USER(state, user) {
-            state.user = user;
-        },
-        
-        SET_ROOMS(state, rooms) {
-            state.rooms = rooms;
-        },
-        
-        SET_CURRENT_ROOM(state, room) {
-            state.currentRoom = room;
-        },
-        
-        SET_MESSAGES(state, { roomId, messages }) {
-            state.messages = {
-                ...state.messages,
-                [roomId]: messages,
-            };
-        },
-        
-        ADD_MESSAGE(state, { roomId, message }) {
-            if (!state.messages[roomId]) {
-                state.messages[roomId] = [];
-            }
-            
-            state.messages[roomId].push(message);
-        },
-        
-        SET_ONLINE_USERS(state, { roomId, users }) {
-            state.onlineUsers = {
-                ...state.onlineUsers,
-                [roomId]: users,
-            };
-        },
-        
-        ADD_ONLINE_USER(state, { roomId, user }) {
-            if (!state.onlineUsers[roomId]) {
-                state.onlineUsers[roomId] = [];
-            }
-            
-            if (!state.onlineUsers[roomId].find(u => u.id === user.id)) {
-                state.onlineUsers[roomId].push(user);
-            }
-        },
-        
-        REMOVE_ONLINE_USER(state, { roomId, userId }) {
-            if (state.onlineUsers[roomId]) {
-                state.onlineUsers[roomId] = state.onlineUsers[roomId].filter(
-                    user => user.id !== userId
-                );
-            }
-        },
-    },
-    
-    actions: {
-        // store/index.js
-        async login({ commit }, credentials) {
-            try {
-                const response = await axios.post('/api/login', credentials);
-        
-                const token = response.data.token;
-        
-                localStorage.setItem('auth_token', token);
-        
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-                commit('SET_USER', response.data.user);
-                return response.data.user;
-            } catch (error) {
-                console.error('Lỗi đăng nhập:', error.response?.data || error);
-                throw error;
-            }
-        },
-        
+  state: {
+    user: null,
+    rooms: [],
+    currentRoom: null,
+    onlineUsers: {},
+    messages: {}
+  },
 
-        async register({ commit }, userData) {
+  getters: {
+    isAuthenticated: state => !!state.user,
+    currentUser: state => state.user,
+    rooms: state => state.rooms,
+    currentRoom: state => state.currentRoom,
+    messages: state => (roomId) => state.messages[roomId] || [],
+    onlineUsers: state => (roomId) => state.onlineUsers[roomId] || []
+  },
 
-            try {
-                await axios.get('/sanctum/csrf-cookie');
-                
-                await axios.post('/api/register', userData);
-            } catch (error) {
-                console.error('Lỗi đăng Ký:', error);
-                throw error;
-            }
-        },
-
-        // store/index.js
-        async fetchCurrentUser({ commit }) {
-            try {
-                const response = await axios.get('/api/user');
-                commit('SET_USER', response.data);
-                return response.data;
-            } catch (error) {
-                if (error.response && error.response.status === 401) {
-                    console.log('Người dùng chưa đăng nhập');
-                    commit('SET_USER', null);
-                    return null;
-                }
-                console.error('Lỗi lấy thông tin user:', error);
-                throw error;
-            }
-        },
-        
-        logout({ commit }) {
-            const token = localStorage.getItem('auth_token');
-        
-            if (!token) return;
-        
-            return axios.post('/api/logout', null, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json'
-                }
-            }).then(() => {
-                commit('SET_USER', null);
-                localStorage.removeItem('auth_token');
-                delete axios.defaults.headers.common['Authorization'];
-            });
-        },
-
-        async createRoom({ commit, dispatch }, roomData) {
-            const response = await axios.post('/api/rooms', roomData);
-            commit('setRooms', [...state.rooms, response.data]);
-            return response.data;
-        },
-        
-        
-        async fetchRooms({ commit }) {
-            try {
-                const response = await axios.get('/api/rooms');
-                commit('SET_ROOMS', response.data);
-                return response.data;
-            } catch (error) {
-                console.error('Lỗi lấy danh sách phòng:', error);
-                throw error;
-            }
-        },
-        
-        async connectWebSocket({ state, commit }) {
-            if (!window.Echo) {
-                console.error('Echo is not initialized');
-                return;
-            }
-            console.log('Connecting to presence channel:', `presence-chat.${state.currentRoom?.id}`);
-            await axios.get('/sanctum/csrf-cookie');
-            const roomId = this.currentRoomId || 1; // Lấy từ Vuex, component, hoặc API
-            if (!roomId) {
-                console.error('Room ID is undefined');
-                return;
-            }
-            console.log('Joining channel: presence-chat.' + roomId);
-            window.Echo.join(`presence-chat.${roomId}`)
-                .here((users) => { console.log('Users:', users); })
-                .joining((user) => { console.log('Joining:', user); })
-                .leaving((user) => { console.log('Leaving:', user); })
-                .error((error) => { console.error('Echo join error:', error); })
-                .here((users) => {
-                    commit('setOnlineUsers', {
-                        roomId: state.currentRoom.id,
-                        users,
-                    });
-                    console.log('Users in room:', users);
-                })
-                .joining((user) => {
-                    commit('setOnlineUsers', {
-                        roomId: state.currentRoom.id,
-                        users: [...state.onlineUsers[state.currentRoom.id], user],
-                    });
-                    console.log('User joined:', user);
-                })
-                .leaving((user) => {
-                    commit('setOnlineUsers', {
-                        roomId: state.currentRoom.id,
-                        users: state.onlineUsers[state.currentRoom.id].filter(
-                            (u) => u.id !== user.id
-                        ),
-                    });
-                    console.log('User left:', user);
-                })
-                .listen('ChatMessageEvent', (e) => {
-                    commit('addMessage', {
-                        roomId: state.currentRoom.id,
-                        message: e.message,
-                    });
-                    console.log('Message received:', e.message);
-                })
-                .error((error) => {
-                    console.error('Echo error:', error);
-                });
-        },
-        
-        joinRoom({ commit }, roomId) {
-            websocketService.joinRoom(roomId);
-        },
-        
-        leaveRoom({ commit }, roomId) {
-            websocketService.leaveRoom(roomId);
-        },
-        
-        sendMessage({ commit }, { roomId, content }) {
-            websocketService.sendMessage(roomId, content);
-        },
+  mutations: {
+    setUser(state, user) {
+      state.user = user;
     },
+    setRooms(state, rooms) {
+      state.rooms = rooms;
+    },
+    setCurrentRoomId(state, roomId) {
+      const room = state.rooms.find(r => r.id === roomId);
+      state.currentRoom = room || null;
+      if (!room) console.warn(`Room ${roomId} not found`);
+    },
+    setOnlineUsers(state, { roomId, users }) {
+      state.onlineUsers = { ...state.onlineUsers, [roomId]: users };
+    },
+    addMessage(state, { roomId, message }) {
+      if (!state.messages[roomId]) state.messages[roomId] = [];
+      state.messages[roomId].push(message);
+    },
+    clearAuth(state) {
+      state.user = null;
+      state.currentRoom = null;
+      if (window.Echo && state.currentRoom) {
+        window.Echo.leave(`presence-chat.${state.currentRoom.id}`);
+      }
+    }
+  },
+
+  actions: {
+    async login({ commit, state }, credentials) {
+      try {
+          await axios.get('/sanctum/csrf-cookie');
+          
+          const res = await axios.post('/api/login', credentials);
+          console.log('API login response:', res.data);
+          
+          commit('setUser', res.data.user);
+          
+          console.log('State hiện tại:', JSON.stringify(state));
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          console.log('User sau timeout:', state.user);
+          
+          return res.data;
+      } catch (error) {
+          console.error('Login error:', error);
+          throw error;
+      }
+  },
+
+    async logout({ commit }) {
+      await axios.post('/api/logout');
+      commit('clearAuth');
+    },
+
+    async fetchRooms({ commit, state }) {
+      const res = await axios.get('/api/rooms');
+      const rooms = res.data.data || res.data;
+      commit('setRooms', rooms);
+      if (!state.currentRoom && rooms.length > 0) {
+        commit('setCurrentRoomId', rooms[0].id);
+      }
+    },
+
+    async createRoom({ dispatch }, roomData) {
+      const res = await axios.post('/api/rooms', roomData);
+      await dispatch('fetchRooms');
+      return res.data;
+    },
+
+    async connectWebSocket({ state, commit }) {
+      if (!window.Echo) return console.error('Echo not initialized');
+      if (!state.currentRoom) return console.error('No room selected');
+
+      const roomId = state.currentRoom.id;
+      console.log('Joining presence-chat.' + roomId);
+      console.log('user',state.user.id);
+
+      if (window.Echo.connector.channels[`presence-chat.${roomId}`]) {
+          window.Echo.leave(`presence-chat.${roomId}`);
+      }
+
+      window.Echo.join(`presence-chat.${roomId}`)
+          .here(users => {
+              console.log('Users here:', users);
+              commit('setOnlineUsers', { roomId, users });
+          })
+          .joining(user => {
+              console.log('User joining:', user);
+              const current = state.onlineUsers[roomId] || [];
+              commit('setOnlineUsers', { roomId, users: [...current, user] });
+          })
+          .leaving(user => {
+              console.log('User leaving:', user);
+              const current = state.onlineUsers[roomId] || [];
+              commit('setOnlineUsers', { roomId, users: current.filter(u => u.id !== user.id) });
+          })
+          .listen('.ChatMessageEvent', e => {
+              console.log('Message received:', e);
+              commit('addMessage', { roomId, message: e.message });
+          })
+          .error(err => console.error('Echo error:', err));
+    },
+
+    async sendMessage({ state }, { content }) {
+      if (!state.currentRoom) return;
+      await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, { content });
+    }
+  }
 });

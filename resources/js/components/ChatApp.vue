@@ -82,7 +82,7 @@
         </div>
       </div>
       
-      <!-- Form đăng nhập -->
+      <!-- Form đăng nhập
       <div v-else class="login-container">
         <div class="login-form">
           <h2>Đăng nhập để Chat</h2>
@@ -104,7 +104,7 @@
             <button type="submit" class="login-btn">Đăng nhập</button>
           </form>
         </div>
-      </div>
+      </div> -->
       
       <!-- Modal tạo phòng mới -->
       <div class="modal" v-if="showCreateRoomModal">
@@ -150,7 +150,7 @@
       const newRoom = ref({ name: '', description: '' });
       const loginError = ref('');
       
-      // Computed properties
+      // Computed 
       const isAuthenticated = computed(() => store.getters.isAuthenticated);
       const currentUser = computed(() => store.getters.currentUser);
       const rooms = computed(() => store.getters.rooms);
@@ -162,33 +162,31 @@
         store.getters.onlineUsers(currentRoom.value?.id || 0)
       );
       
-      // Scroll to bottom when messages change
       watch(roomMessages, () => {
         nextTick(() => {
           scrollToBottom();
         });
       });
       
-      // Methods
-      const selectRoom = async (roomId) => {
-        if (currentRoom.value) {
-          store.dispatch('leaveRoom', currentRoom.value.id);
-        }
-        
-        store.dispatch('joinRoom', roomId);
-      };
-      
       const sendMessage = () => {
-        if (!newMessage.value.trim() || !currentRoom.value) {
-          return;
-        }
-        
-        store.dispatch('sendMessage', {
-          roomId: currentRoom.value.id,
-          content: newMessage.value
-        });
-        
-        newMessage.value = '';
+          if (!newMessage.value.trim() || !currentRoom.value) {
+              return;
+          }
+          
+          store.dispatch('sendMessage', {
+              content: newMessage.value
+          });
+          
+          newMessage.value = '';
+      };
+
+      const selectRoom = async (roomId) => {
+          if (currentRoom.value && currentRoom.value.id !== roomId) {
+              store.dispatch('leaveRoom', currentRoom.value.id);
+          }
+          
+          store.commit('setCurrentRoomId', roomId);
+          store.dispatch('connectWebSocket'); 
       };
       
       const handleLogin = async () => {
@@ -219,7 +217,6 @@
           selectRoom(room.id);
         } catch (error) {
           console.error('Lỗi tạo phòng:', error);
-          // alert('Không thể tạo phòng. Vui lòng thử lại.');
         }
       };
       

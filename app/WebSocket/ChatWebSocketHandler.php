@@ -10,7 +10,7 @@ use App\Models\ChatRoom;
 use App\Models\Message;
 use App\Models\User;
 
-class ChatWebSocketHandler implements HandlerContract
+class ChatWebSocketHandler
 {
     protected $users = [];
 
