@@ -84,6 +84,17 @@ export default createStore({
       }
     },
 
+    async getMessage({state}, { roomId }) {
+      const res = await axios.get(`/api/rooms/${roomId}/messages`);
+      const messages = res.data.data || res.data;
+      commit('addMessage', message);
+      if (!state.currentRoom && message.length > 0) {
+        commit('addMessage', message[0].id);
+      }
+      state.messages = { ...state.messages, [roomId]: messages };
+
+    },
+
     async createRoom({ dispatch }, roomData) {
       const res = await axios.post('/api/rooms', roomData);
       await dispatch('fetchRooms');
@@ -94,10 +105,23 @@ export default createStore({
       if (!window.Echo) return console.error('Echo not initialized');
       if (!state.currentRoom) return console.error('No room selected');
 
+
+    
       const roomId = state.currentRoom.id;
       console.log('Joining presence-chat.' + roomId);
-      console.log('user',state.user.id);
+      console.log('user', state.user.id);
+      console.log('message', state.messages[roomId]);
+      
+      const res1 = await axios.get(`/api/rooms/${roomId}/messages`);
+      
+      const messages = res1.data.data || res1.data;
+      
+      state.messages = { ...state.messages, [roomId]: messages };
+      
 
+      console.log('Messages sau khi lấy:', state.messages);
+
+      
       if (window.Echo.connector.channels[`presence-chat.${roomId}`]) {
           window.Echo.leave(`presence-chat.${roomId}`);
       }
@@ -119,14 +143,19 @@ export default createStore({
           })
           .listen('.ChatMessageEvent', e => {
               console.log('Message received:', e);
-              commit('addMessage', { roomId, message: e.message });
+              const currentMessages = state.messages[roomId] || [];
+              commit('addMessage', { roomId, message: e.currentMessages });
           })
           .error(err => console.error('Echo error:', err));
     },
 
+
+
     async sendMessage({ state }, { content }) {
       if (!state.currentRoom) return;
-      await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, { content });
+      await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, {
+        content
+      });
     }
   }
 });

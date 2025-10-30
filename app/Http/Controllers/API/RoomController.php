@@ -2,8 +2,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use App\Models\ChatRoom;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class RoomController extends Controller
@@ -48,4 +50,22 @@ class RoomController extends Controller
 
         return response()->json($messages);
     }
+
+    public function postmessage(Request $request, $room)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|max:255',
+        ]);
+    
+        $user = Auth::user();
+    
+        $message = Message::create([
+            'room_id' => $room, 
+            'user_id' => $user->id,
+            'content' => $validated['content'],
+        ]);
+    
+        return response()->json($message, 201);
+    }
+    
 }

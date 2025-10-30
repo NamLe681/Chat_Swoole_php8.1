@@ -82,7 +82,7 @@
         </div>
       </div>
       
-      <!-- Form đăng nhập
+      <!-- Form đăng nhập -->
       <div v-else class="login-container">
         <div class="login-form">
           <h2>Đăng nhập để Chat</h2>
@@ -104,7 +104,7 @@
             <button type="submit" class="login-btn">Đăng nhập</button>
           </form>
         </div>
-      </div> -->
+      </div>
       
       <!-- Modal tạo phòng mới -->
       <div class="modal" v-if="showCreateRoomModal">
@@ -182,7 +182,7 @@
 
       const selectRoom = async (roomId) => {
           if (currentRoom.value && currentRoom.value.id !== roomId) {
-              store.dispatch('leaveRoom', currentRoom.value.id);
+              store.dispatch('connectWebSocket', currentRoom.value.id);
           }
           
           store.commit('setCurrentRoomId', roomId);
@@ -193,7 +193,8 @@
         try {
             loginError.value = '';
           await store.dispatch('login', loginForm.value);
-            await store.dispatch('fetchRooms');
+          await store.dispatch('fetchRooms');
+          await store.dispatch('getMessage');
           await store.dispatch('connectWebSocket');
             loginForm.value = { email: '', password: '' };
         } catch (error) {
@@ -234,6 +235,7 @@
       (async () => {
         if (isAuthenticated.value) {
           await store.dispatch('fetchRooms');
+          await store.dispatch('getMessage');
           await store.dispatch('connectWebSocket');
         }
       })();
