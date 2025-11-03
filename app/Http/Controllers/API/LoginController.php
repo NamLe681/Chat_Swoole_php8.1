@@ -35,8 +35,8 @@ public function login(Request $request)
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-
+        $request->Auth()->logout();
+        \Log::info('logout');
         return response()->json(['message' => 'Logout successful']);
     }
 }

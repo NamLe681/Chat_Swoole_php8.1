@@ -104,48 +104,48 @@ export default createStore({
     async connectWebSocket({ state, commit }) {
       if (!window.Echo) return console.error('Echo not initialized');
       if (!state.currentRoom) return console.error('No room selected');
-
+    
 
     
       const roomId = state.currentRoom.id;
       console.log('Joining presence-chat.' + roomId);
       console.log('user', state.user.id);
       console.log('message', state.messages[roomId]);
-      
+    
       const res1 = await axios.get(`/api/rooms/${roomId}/messages`);
       
       const messages = res1.data.data || res1.data;
       
       state.messages = { ...state.messages, [roomId]: messages };
-      
+    
 
       console.log('Messages sau khi lấy:', state.messages);
 
       
       if (window.Echo.connector.channels[`presence-chat.${roomId}`]) {
-          window.Echo.leave(`presence-chat.${roomId}`);
+        window.Echo.leave(`presence-chat.${roomId}`);
       }
-
+    
       window.Echo.join(`presence-chat.${roomId}`)
-          .here(users => {
-              console.log('Users here:', users);
-              commit('setOnlineUsers', { roomId, users });
-          })
-          .joining(user => {
-              console.log('User joining:', user);
-              const current = state.onlineUsers[roomId] || [];
-              commit('setOnlineUsers', { roomId, users: [...current, user] });
-          })
-          .leaving(user => {
-              console.log('User leaving:', user);
-              const current = state.onlineUsers[roomId] || [];
-              commit('setOnlineUsers', { roomId, users: current.filter(u => u.id !== user.id) });
+        .here(users => {
+          console.log('Users here:', users);
+          commit('setOnlineUsers', { roomId, users });
+        })
+        .joining(user => {
+          console.log('User joining:', user);
+          const current = state.onlineUsers[roomId] || [];
+          commit('setOnlineUsers', { roomId, users: [...current, user] });
+        })
+        .leaving(user => {
+          console.log('User leaving:', user);
+          const current = state.onlineUsers[roomId] || [];
+          commit('setOnlineUsers', { roomId, users: current.filter(u => u.id !== user.id) });
           })
           .listen('.ChatMessageEvent', e => {
-              console.log('Message received:', e);
+          console.log('Message received:', e);
               const currentMessages = state.messages[roomId] || [];
               commit('addMessage', { roomId, message: e.currentMessages });
-          })
+        })
           .error(err => console.error('Echo error:', err));
     },
 

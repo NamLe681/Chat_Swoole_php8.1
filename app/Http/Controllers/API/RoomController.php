@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ChatRoom;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-
+use app\Event\ChatMessageEvent;
 class RoomController extends Controller
 {
     public function index()
@@ -33,23 +33,27 @@ class RoomController extends Controller
     }
 
     public function show(ChatRoom $room)
-    {
-        $room->load(['users' => function ($query) {
-            $query->select('users.id', 'name', 'email');
-        }]);
+    {   
 
-        return response()->json($room);
+        $userId = Auth::id();
+        $rooms = ChatRoom::withCount('users')
+            ->whereHas('users', function($query) use ($userId) {
+                $query->where('users.id', $userId);
+            })
+    ->get();
+
+        return response()->json($rooms);
     }
 
     public function messages(ChatRoom $room)
-    {
-        $messages = $room->messages()
-                         ->with('user:id,name,email')
-                         ->latest()
-                         ->paginate(50);
+{
+    $messages = $room->messages()
+                     ->with('user:id,name') 
+                     ->latest()
+                     ->paginate(50);
 
-        return response()->json($messages);
-    }
+    return response()->json($messages);
+}
 
     public function postmessage(Request $request, $room)
     {
@@ -64,8 +68,21 @@ class RoomController extends Controller
             'user_id' => $user->id,
             'content' => $validated['content'],
         ]);
+        broadcast(new ChatMessageEvent($message->load('user')));
     
         return response()->json($message, 201);
+
+    }
+
+    public function AddUserToRooom(Request $request, $room)
+    {
+        $user = Auth::user();
+
+        $chatRoom = ChatRoom::findOrFail($room);
+
+        $chatRoom->users()->attach($user->id);
+
+        return response()->json(['message' => 'User added to room successfully.'], 200);
     }
     
 }

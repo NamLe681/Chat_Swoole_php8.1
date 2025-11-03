@@ -42,7 +42,7 @@
                 Chưa có tin nhắn nào trong phòng này
               </div>
               <div 
-                v-for="message in roomMessages" 
+                v-for="message in [...roomMessages].reverse()" 
                 :key="message.id"
                 :class="['message', { 'own-message': message.user.id === currentUser.id }]"
               >
@@ -53,7 +53,6 @@
                 <div class="message-content">{{ message.content }}</div>
               </div>
             </div>
-            
             <div class="message-input">
               <input 
                 type="text" 
@@ -79,9 +78,12 @@
               <span v-if="user.id === currentUser.id" class="user-self">(bạn)</span>
             </li>
           </ul>
+          <div>
+            <h3>Add user</h3>
+            <button @click="addUser" >Add user feature coming soon!</button>
+          </div>
         </div>
       </div>
-      
       <!-- Form đăng nhập -->
       <div v-else class="login-container">
         <div class="login-form">
@@ -176,7 +178,7 @@
           store.dispatch('sendMessage', {
               content: newMessage.value
           });
-          
+          store.dispatch('connectWebSocket',newMessage.value); 
           newMessage.value = '';
       };
 
@@ -186,7 +188,7 @@
           }
           
           store.commit('setCurrentRoomId', roomId);
-          store.dispatch('connectWebSocket'); 
+          // store.dispatch('connectWebSocket'); 
       };
       
       const handleLogin = async () => {
@@ -194,7 +196,7 @@
             loginError.value = '';
           await store.dispatch('login', loginForm.value);
           await store.dispatch('fetchRooms');
-          await store.dispatch('getMessage');
+          // await store.dispatch('getMessage');
           await store.dispatch('connectWebSocket');
             loginForm.value = { email: '', password: '' };
         } catch (error) {
@@ -205,7 +207,7 @@
       
       const handleLogout = () => {
         if (currentRoom.value) {
-          store.dispatch('leaveRoom', currentRoom.value.id);
+          store.dispatch('logout', currentRoom.value.id);
         }
         store.dispatch('logout');
       };
@@ -219,6 +221,10 @@
         } catch (error) {
           console.error('Lỗi tạo phòng:', error);
         }
+      };
+
+      const addUser = () => {
+        alert('Add user feature coming soon!');
       };
       
       const formatTime = (timestamp) => {
@@ -257,6 +263,7 @@
         sendMessage,
         handleLogin,
         handleLogout,
+        addUser,
         createNewRoom,
         formatTime
       };
