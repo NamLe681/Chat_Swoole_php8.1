@@ -183,13 +183,17 @@
       };
 
       const selectRoom = async (roomId) => {
-          if (currentRoom.value && currentRoom.value.id !== roomId) {
-              store.dispatch('connectWebSocket', currentRoom.value.id);
-          }
-          
-          store.commit('setCurrentRoomId', roomId);
-          // store.dispatch('connectWebSocket'); 
-      };
+        const previousRoomId = currentRoom.value?.id;
+
+        if (previousRoomId) {
+            window.Echo.leave(`presence-chat.${previousRoomId}`);
+        }
+
+        store.commit('setCurrentRoomId', roomId);
+
+        await store.dispatch('connectWebSocket', roomId);
+    };
+
       
       const handleLogin = async () => {
         try {
