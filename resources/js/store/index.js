@@ -93,8 +93,8 @@ export default createStore({
       }
       state.messages = { ...state.messages, [roomId]: messages };
 
-    },
-
+  },
+  
     async createRoom({ dispatch }, roomData) {
       const res = await axios.post('/api/rooms', roomData);
       await dispatch('fetchRooms');

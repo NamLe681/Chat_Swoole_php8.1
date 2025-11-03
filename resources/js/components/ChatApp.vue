@@ -38,21 +38,22 @@
             </div>
             
             <div class="messages-container" ref="messagesContainer">
-              <div v-if="roomMessages.length === 0" class="no-messages">
-                Chưa có tin nhắn nào trong phòng này
-              </div>
-              <div 
-                v-for="message in [...roomMessages].reverse()" 
-                :key="message.id"
-                :class="['message', { 'own-message': message.user.id === currentUser.id }]"
-              >
-                <div class="message-header">
-                  <span class="message-author">{{ message.user.name }}</span>
-                  <span class="message-time">{{ formatTime(message.created_at) }}</span>
-                </div>
-                <div class="message-content">{{ message.content }}</div>
-              </div>
+            <div v-if="roomMessages.length === 0" class="no-messages">
+              Chưa có tin nhắn nào trong phòng này
             </div>
+            <div 
+              v-for="message in roomMessages" 
+              :key="message.id"
+              :class="['message', { 'own-message': message.user.id === currentUser.id }]"
+            >
+              <div class="message-header">
+                <span class="message-author">{{ message.user.name }}</span>
+                <span class="message-time">{{ formatTime(message.created_at) }}</span>
+              </div>
+              <div class="message-content">{{ message.content }}</div>
+            </div>
+          </div>
+
             <div class="message-input">
               <input 
                 type="text" 
@@ -178,7 +179,6 @@
           store.dispatch('sendMessage', {
               content: newMessage.value
           });
-          store.dispatch('connectWebSocket',newMessage.value); 
           newMessage.value = '';
       };
 
@@ -200,8 +200,9 @@
             loginError.value = '';
           await store.dispatch('login', loginForm.value);
           await store.dispatch('fetchRooms');
-          // await store.dispatch('getMessage');
           await store.dispatch('connectWebSocket');
+          await store.dispatch('getMessage');
+
             loginForm.value = { email: '', password: '' };
         } catch (error) {
             loginError.value = 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.';
@@ -245,8 +246,8 @@
       (async () => {
         if (isAuthenticated.value) {
           await store.dispatch('fetchRooms');
-          await store.dispatch('getMessage');
           await store.dispatch('connectWebSocket');
+          await store.dispatch('getMessage');
         }
       })();
       
