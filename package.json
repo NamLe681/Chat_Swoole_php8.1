@@ -18,6 +18,7 @@
         "vue": "^3.2.37"
     },
     "dependencies": {
+        "emoji-mart-vue-fast": "^15.0.5",
         "vue": "^3.5.22",
         "vue-router": "^4.6.3",
         "vuex": "^4.1.0"

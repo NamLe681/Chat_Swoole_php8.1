@@ -61,6 +61,7 @@
                 @keyup.enter="sendMessage"
                 placeholder="Nhập tin nhắn..."
               />
+              <textarea-emoji-picker v-model="text"/>
               <button @click="sendMessage">Gửi</button>
             </div>
           </template>
@@ -140,10 +141,13 @@
   <script>
   import { ref, computed, watch, nextTick } from 'vue';
   import { useStore } from 'vuex';
-  
+  import TextareaEmojiPicker from './TextareaEmojiPicker.vue';
+
   export default {
     name: 'ChatApp',
-    
+    components: {
+       TextareaEmojiPicker,
+    },
     setup() {
       const store = useStore();
       const newMessage = ref('');
@@ -252,6 +256,7 @@
       })();
       
       return {
+        text: '',
         newMessage,
         messagesContainer,
         showCreateRoomModal,
@@ -270,7 +275,7 @@
         handleLogout,
         addUser,
         createNewRoom,
-        formatTime
+        formatTime,
       };
     }
   };
