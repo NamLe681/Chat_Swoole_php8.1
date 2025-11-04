@@ -2,15 +2,9 @@
     <div class="row">
     <Picker :data="emojiIndex" set="twitter" @select="showEmoji" />
   </div>
-
-  <div class="row">
-    <div>
-      {{ emojisOutput }}
-    </div>
-  </div>
   </template>
   
-  <script>
+<script>
 
 import data from "emoji-mart-vue-fast/data/all.json";
 import "emoji-mart-vue-fast/css/emoji-mart.css";
@@ -20,7 +14,7 @@ import { Picker, EmojiIndex } from "emoji-mart-vue-fast/src";
 let emojiIndex = new EmojiIndex(data);
 
 export default {
-  name: "App",
+  name: "EmojiPicker",
   components: {
     Picker
   },
@@ -34,7 +28,7 @@ export default {
 
   methods: {
     showEmoji(emoji) {
-      this.emojisOutput = this.emojisOutput + emoji.native;
+        this.$emit('emoji-selected', emoji.native);
     }
   }
 };

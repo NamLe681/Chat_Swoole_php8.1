@@ -61,7 +61,14 @@
                 @keyup.enter="sendMessage"
                 placeholder="Nhập tin nhắn..."
               />
-              <textarea-emoji-picker v-model="text"/>
+              <button class="emoji-toggle-btn" @click="showEmojiPicker = !showEmojiPicker">
+                😊
+              </button>
+
+              <div v-if="showEmojiPicker" class="emoji-picker-container">
+                <textarea-emoji-picker @emoji-selected="handleEmojiSelect" />
+              </div>
+
               <button @click="sendMessage">Gửi</button>
             </div>
           </template>
@@ -148,6 +155,12 @@
     components: {
        TextareaEmojiPicker,
     },
+
+    methods: {
+    addEmoji(emoji) {
+      this.newMessage += emoji;
+    },
+  },
     setup() {
       const store = useStore();
       const newMessage = ref('');
@@ -168,6 +181,8 @@
       const roomOnlineUsers = computed(() => 
         store.getters.onlineUsers(currentRoom.value?.id || 0)
       );
+      const showEmojiPicker = ref(false);
+
       
       watch(roomMessages, () => {
         nextTick(() => {
@@ -245,6 +260,11 @@
           messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
         }
       };
+
+      const handleEmojiSelect = (emoji) => {
+        newMessage.value += emoji;
+        showEmojiPicker.value = false; 
+      };
       
       // Load rooms and connect WebSocket on mount
       (async () => {
@@ -256,7 +276,6 @@
       })();
       
       return {
-        text: '',
         newMessage,
         messagesContainer,
         showCreateRoomModal,
@@ -276,6 +295,8 @@
         addUser,
         createNewRoom,
         formatTime,
+        showEmojiPicker,
+        handleEmojiSelect
       };
     }
   };
@@ -583,4 +604,20 @@
     cursor: pointer;
     margin-top: 10px;
   }
+
+  .emoji-toggle-btn {
+    background: transparent;
+    border: none;
+    /* font-size: 20px; */
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.emoji-picker-container {
+  position: absolute;
+  bottom: 60px;
+  right: 50px;
+  z-index: 10;
+}
+
   </style>
