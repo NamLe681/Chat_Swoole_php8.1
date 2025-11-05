@@ -114,7 +114,7 @@ export default createStore({
     
       const res1 = await axios.get(`/api/rooms/${roomId}/messages`);
       
-      const messages = res1.data.data || res1.data;
+      const messages = res1.data.data.reverse();
       
       state.messages = { ...state.messages, [roomId]: messages };
     

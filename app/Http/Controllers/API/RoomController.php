@@ -49,7 +49,7 @@ class RoomController extends Controller
     {
         $messages = $room->messages()
                         ->with('user:id,name') 
-                        ->oldest()
+                        ->latest()
                         ->cursorPaginate(50);
 
         return response()->json($messages);
