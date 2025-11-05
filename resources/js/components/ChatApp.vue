@@ -38,6 +38,9 @@
             </div>
             
             <div class="messages-container" ref="messagesContainer">
+            <div v-if="isLoadingMore" class="loading-more">
+              <span>Đang tải tin nhắn cũ...</span>
+            </div>
             <div v-if="roomMessages.length === 0" class="no-messages">
               Chưa có tin nhắn nào trong phòng này
             </div>
@@ -149,6 +152,7 @@
   import { ref, computed, watch, nextTick } from 'vue';
   import { useStore } from 'vuex';
   import TextareaEmojiPicker from './TextareaEmojiPicker.vue';
+  import { onUnmounted } from 'vue';
 
   export default {
     name: 'ChatApp',
@@ -162,6 +166,9 @@
     },
   },
     setup() {
+      const isLoadingMore = ref(false);
+      const hasMoreMessages = ref(true);
+      const currentCursor = ref(null);
       const store = useStore();
       const newMessage = ref('');
       const messagesContainer = ref(null);
@@ -188,6 +195,36 @@
         nextTick(() => {
           scrollToBottom();
         });
+      });
+
+      watch(currentRoom, () => {
+        hasMoreMessages.value = true;
+        currentCursor.value = null;
+        isLoadingMore.value = false;
+      });
+
+      const handleScroll = () => {
+        const container = messagesContainer.value;
+        if (!container) return;
+
+        const scrollPosition = container.scrollTop;
+        const threshold = 100; 
+        if (scrollPosition < threshold && !isLoadingMore.value && hasMoreMessages.value) {
+          loadMoreMessages();
+        }
+      };
+
+      // Gắn và gỡ event
+      watch(messagesContainer, (el) => {
+        if (el) {
+          el.addEventListener('scroll', handleScroll);
+        }
+      }, { immediate: true });
+
+      onUnmounted(() => {
+        if (messagesContainer.value) {
+          messagesContainer.value.removeEventListener('scroll', handleScroll);
+        }
       });
       
       const sendMessage = () => {
@@ -265,6 +302,47 @@
         newMessage.value += emoji;
         showEmojiPicker.value = false; 
       };
+
+      const loadMoreMessages = async () => {
+        if (isLoadingMore.value || !hasMoreMessages.value || !currentRoom.value) return;
+
+        isLoadingMore.value = true;
+
+        try {
+          const response = await store.dispatch('fetchMoreMessages', {
+            roomId: currentRoom.value.id,
+            cursor: currentCursor.value
+          });
+
+          // Giả sử response trả về: { messages, pagination }
+          const { data, next_cursor, prev_cursor } = response;
+
+          // Nếu không còn tin nhắn cũ
+          if (!next_cursor) {
+            hasMoreMessages.value = false;
+          } else {
+            currentCursor.value = next_cursor;
+          }
+
+          // Lưu lại scroll position trước khi thêm tin nhắn
+          const container = messagesContainer.value;
+          const previousHeight = container.scrollHeight;
+
+          // Thêm tin nhắn cũ vào đầu danh sách (store cần hỗ trợ prepend)
+          store.commit('prependMessages', { roomId: currentRoom.value.id, messages: data });
+
+          // Giữ nguyên vị trí scroll sau khi thêm tin nhắn cũ
+          nextTick(() => {
+            const newHeight = container.scrollHeight;
+            container.scrollTop = newHeight - previousHeight;
+          });
+
+        } catch (error) {
+          console.error('Lỗi tải thêm tin nhắn:', error);
+        } finally {
+          isLoadingMore.value = false;
+        }
+      };
       
       // Load rooms and connect WebSocket on mount
       (async () => {
@@ -296,7 +374,8 @@
         createNewRoom,
         formatTime,
         showEmojiPicker,
-        handleEmojiSelect
+        handleEmojiSelect,
+        isLoadingMore
       };
     }
   };
@@ -618,6 +697,21 @@
   bottom: 60px;
   right: 50px;
   z-index: 10;
+}
+
+.loading-more {
+  text-align: center;
+  padding: 10px;
+  color: #888;
+  font-size: 0.9em;
+}
+
+.messages-container {
+  overflow-y: auto;
+  max-height: 100%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
   </style>

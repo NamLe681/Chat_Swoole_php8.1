@@ -44,7 +44,20 @@ export default createStore({
       if (window.Echo && state.currentRoom) {
         window.Echo.leave(`presence-chat.${state.currentRoom.id}`);
       }
-    }
+    },
+    prependMessages(state, { roomId, messages }) {
+      if (!Array.isArray(messages)) {
+        console.warn('prependMessages: messages không phải là mảng', messages);
+        return;
+      }
+    
+      const roomMessages = state.messages[roomId] || [];
+      const reversed = [...messages].reverse();
+    
+      state.messages[roomId] = [...reversed, ...roomMessages];
+    },
+    
+    
   },
 
   actions: {
@@ -69,6 +82,17 @@ export default createStore({
           throw error;
       }
   },
+    async fetchMoreMessages({ commit }, { roomId, cursor }) {
+      const url = cursor 
+        ? `http://127.0.0.1:8000/api/rooms/${roomId}/messages?cursor=${cursor}`
+        : `http://127.0.0.1:8000/api/rooms/${roomId}/messages`;
+    
+      const response = await axios.get(url);
+      const { data, next_cursor, prev_cursor } = response.data || [];
+    
+      commit('prependMessages', { roomId, messages: data });
+      return { data, next_cursor, prev_cursor };
+    },
 
     async logout({ commit }) {
       await axios.post('/api/logout');
@@ -84,16 +108,12 @@ export default createStore({
       }
     },
 
-    async getMessage({state}, { roomId }) {
+    async getMessage({ commit, state }, { roomId }) {
       const res = await axios.get(`/api/rooms/${roomId}/messages`);
       const messages = res.data.data || res.data;
-      commit('addMessage', message);
-      if (!state.currentRoom && message.length > 0) {
-        commit('addMessage', message[0].id);
-      }
       state.messages = { ...state.messages, [roomId]: messages };
-
-  },
+    },
+    
   
     async createRoom({ dispatch }, roomData) {
       const res = await axios.post('/api/rooms', roomData);
