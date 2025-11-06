@@ -77,6 +77,7 @@ export default {
 
         this.audioUrl = res.data.url;
         this.$emit("voiceSent", res.data.data);
+        console.log("🎧 Voice uploaded URL:", this.audioUrl);
 
         console.log("✅ Voice uploaded:", res.data);
       } catch (error) {

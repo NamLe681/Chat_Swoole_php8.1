@@ -37,7 +37,7 @@ class VoiceMessageController extends Controller
         return response()->json([
             'message' => 'Voice uploaded successfully',
             'data' => $message,
-            'url' => Storage::url($path),
+            'url' => asset('storage/'.$path),
         ]);
     }
 }
