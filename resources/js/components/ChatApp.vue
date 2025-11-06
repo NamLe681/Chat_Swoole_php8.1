@@ -64,6 +64,12 @@
                 @keyup.enter="sendMessage"
                 placeholder="Nhập tin nhắn..."
               />
+              <button class="voice-recorder-toggle-btn" @click="showVoiceRecord = !showVoiceRecord">
+                Ghi âm
+              </button>
+              <div v-if="showVoiceRecord" class="voice-recorder-container">
+                <VoiceRecorder :room-id="currentRoom.id" @voiceSent="handleVoiceMessage"/>
+              </div>
               <button class="emoji-toggle-btn" @click="showEmojiPicker = !showEmojiPicker">
                 😊
               </button>
@@ -153,11 +159,13 @@
   import { useStore } from 'vuex';
   import TextareaEmojiPicker from './TextareaEmojiPicker.vue';
   import { onUnmounted } from 'vue';
+  import VoiceRecorder from './VoiceRecorder.vue';
 
   export default {
     name: 'ChatApp',
     components: {
        TextareaEmojiPicker,
+       VoiceRecorder
     },
 
     methods: {
@@ -189,6 +197,7 @@
         store.getters.onlineUsers(currentRoom.value?.id || 0)
       );
       const showEmojiPicker = ref(false);
+      const showVoiceRecord = ref(false);
 
       
       watch(roomMessages, () => {
@@ -303,6 +312,11 @@
         showEmojiPicker.value = false; 
       };
 
+      const handleVoiceMessage = (voiceData) => {
+        // newMessage.value += voiceData;
+        showVoiceRecord.value = false; 
+      };
+
       const loadMoreMessages = async () => {
         if (isLoadingMore.value || !hasMoreMessages.value || !currentRoom.value) return;
 
@@ -374,7 +388,9 @@
         createNewRoom,
         formatTime,
         showEmojiPicker,
+        showVoiceRecord,
         handleEmojiSelect,
+        handleVoiceMessage,
         isLoadingMore
       };
     }
@@ -690,6 +706,21 @@
     /* font-size: 20px; */
     cursor: pointer;
     margin-right: 8px;
+}
+
+.voice-recorder-toggle-btn{
+    background: transparent;
+    border: none;
+    /* font-size: 20px; */
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.voice-recorder-container{
+  /* position: absolute; */
+  bottom: 300px;
+  right: 50px;
+  z-index: 10;
 }
 
 .emoji-picker-container {

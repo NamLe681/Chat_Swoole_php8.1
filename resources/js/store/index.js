@@ -176,6 +176,6 @@ export default createStore({
       await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, {
         content
       });
-    }
+    },
   }
 });
