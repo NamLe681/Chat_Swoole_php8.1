@@ -32,12 +32,14 @@ class VoiceMessageController extends Controller
             'content' => $path,
         ]);
 
-        broadcast(new ChatMessageEvent($message->load('user')));
+        broadcast(new ChatMessageEvent(message: $message->load(relations: 'user')));
 
         return response()->json([
             'message' => 'Voice uploaded successfully',
             'data' => $message,
+            'type' => 'voice',
             'url' => asset('storage/'.$path),
+            'content'=> Storage::url($path),
         ]);
     }
 }

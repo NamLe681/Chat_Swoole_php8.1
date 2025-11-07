@@ -41,6 +41,7 @@ class ChatMessageEvent implements ShouldBroadcast
                     'id' => $this->message->user->id,
                     'name' => $this->message->user->name,
                 ],
+                'type' =>$this->message->type,
                 'url' => asset('storage/'.$this->message->content),
             ]
         ];

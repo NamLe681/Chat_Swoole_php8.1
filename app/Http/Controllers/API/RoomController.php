@@ -67,6 +67,7 @@ class RoomController extends Controller
             'room_id' => $room,
             'user_id' => $user->id,
             'content' => $validated['content'],
+            'type' => 'text',
         ]);
         broadcast(new ChatMessageEvent($message->load('user')));
 
@@ -75,16 +76,26 @@ class RoomController extends Controller
     }
 
 
-    public function AddUserToRooom(Request $request, $room)
-    {
-        $user = Auth::user();
+    public function addUserToRoom(Request $request, $roomId, $userId)
+{
+    // $authUser = Auth::user();
 
-        $users = User::where('email', operator: $request->input('email'))->get();
-        $chatRoom = ChatRoom::findOrFail($room);
+    $userId = $request->input('user_id');
 
-        $chatRoom->users()->attach($users->id);
+    $user = User::findOrFail($userId);
 
-        return response()->json(['message' => 'User added to room successfully.'], 200);
+    $chatRoom = ChatRoom::findOrFail($roomId);
+
+    if (!$chatRoom->users()->where('users.id', $user->id)->exists()) {
+        $chatRoom->users()->attach($user->id);
     }
+
+    return response()->json([
+        'message' => 'User added to room successfully.',
+        'room_id' => $chatRoom->id,
+        'user_id' => $user->id,
+    ], 200);
+}
+
     
 }

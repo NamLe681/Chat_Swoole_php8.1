@@ -53,7 +53,7 @@ export default createStore({
     
       const roomMessages = state.messages[roomId] || [];
       const reversed = [...messages].reverse();
-    
+
       state.messages[roomId] = [...reversed, ...roomMessages];
     },
     
@@ -177,5 +177,9 @@ export default createStore({
         content
       });
     },
+
+    async addUserToRoom(){
+
+    }
   }
 });

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('room_id');
             $table->text('content');
+            $table->text('type');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('room_id')->references('id')->on('chat_rooms')->onDelete('cascade');

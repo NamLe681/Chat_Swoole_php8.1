@@ -4,7 +4,7 @@
       {{ isRecording ? "⏹ Dừng ghi" : "🎙 Bắt đầu ghi" }}
     </v-btn>
 
-    <audio v-if="audioUrl" :src="audioUrl" controls class="mt-3"></audio>
+    <!-- <audio v-if="audioUrl" :src="audioUrl" controls class="mt-3"></audio> -->
   </div>
 </template>
 

@@ -53,7 +53,15 @@
                 <span class="message-author">{{ message.user.name }}</span>
                 <span class="message-time">{{ formatTime(message.created_at) }}</span>
               </div>
-              <div class="message-content">{{ message.content }}</div>
+              <div class="message-content">
+              <audio
+                v-if="message.type === 'voice'"
+                :src="getVoiceUrl(message.content)"
+                controls
+              ></audio>
+              <span v-else>{{ message.content }}</span>
+            </div>
+
             </div>
           </div>
 
@@ -171,6 +179,16 @@
     methods: {
     addEmoji(emoji) {
       this.newMessage += emoji;
+    },
+
+    formatTime(datetime) {
+      return new Date(datetime).toLocaleTimeString();
+    },
+    getVoiceUrl(content) {
+      if (content.startsWith('http')) {
+        return content;
+      }
+      return `/storage/${content}`;
     },
   },
     setup() {
@@ -313,7 +331,7 @@
       };
 
       const handleVoiceMessage = (voiceData) => {
-        // newMessage.value += voiceData;
+        newMessage.value += audioUrl;
         showVoiceRecord.value = false; 
       };
 
@@ -328,24 +346,19 @@
             cursor: currentCursor.value
           });
 
-          // Giả sử response trả về: { messages, pagination }
           const { data, next_cursor, prev_cursor } = response;
 
-          // Nếu không còn tin nhắn cũ
           if (!next_cursor) {
             hasMoreMessages.value = false;
           } else {
             currentCursor.value = next_cursor;
           }
 
-          // Lưu lại scroll position trước khi thêm tin nhắn
           const container = messagesContainer.value;
           const previousHeight = container.scrollHeight;
 
-          // Thêm tin nhắn cũ vào đầu danh sách (store cần hỗ trợ prepend)
           store.commit('prependMessages', { roomId: currentRoom.value.id, messages: data });
 
-          // Giữ nguyên vị trí scroll sau khi thêm tin nhắn cũ
           nextTick(() => {
             const newHeight = container.scrollHeight;
             container.scrollTop = newHeight - previousHeight;
@@ -514,6 +527,7 @@
   .message.own-message {
     margin-left: auto;
     background: #dcf8c6;
+    /* word-wrap: break-word; */
   }
   
   .message-header {
