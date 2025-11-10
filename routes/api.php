@@ -4,6 +4,8 @@ use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\Roomcontroller;
 use App\Http\Controllers\API\VoiceMessageController;
+use App\Http\Controllers\Api\SpotifyController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +27,9 @@ Route::post('messages/voice/{room}', [VoiceMessageController::class, 'storeVoice
 Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
 Route::post('rooms/{room}/messages', [RoomController::class, 'postmessage']);
 Route::get('rooms/{room}/messages', [RoomController::class, 'messages']);
+
+//Spotify Search route
+Route::get('/spotify/search', [SpotifyController::class, 'search']);
 
 Route::get('rooms', [RoomController::class, 'show']);
 Route::post('rooms/{room}/add-user/{user}', [RoomController::class, 'addUserToRoom']);
