@@ -5,7 +5,8 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\Roomcontroller;
 use App\Http\Controllers\API\VoiceMessageController;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,7 +20,27 @@ use Illuminate\Support\Facades\Route;
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
-// });
+// email verify
+
+//emai
+
+Route::get('/verify-email/{id}', function (Request $request, $id) {
+    if (! $request->hasValidSignature()) {
+        return response()->json(['message' => 'Liên kết xác thực không hợp lệ hoặc đã hết hạn.'], 403);
+    }
+
+    $user = \App\Models\User::findOrFail($id);
+
+    if ($user->email_verified_at) {
+        return response()->json(['message' => 'Email đã được xác thực trước đó.']);
+    }
+
+    $user->email_verified_at = now();
+    $user->save();
+
+    return response()->json(['message' => 'Xác thực email thành công!']);
+})->name('verification.verify.custom');
+
 
 Route::post('messages/voice/{room}', [VoiceMessageController::class, 'storeVoice'])->middleware(middleware: 'auth:sanctum');
 Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
