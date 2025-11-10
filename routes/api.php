@@ -27,10 +27,11 @@ Route::post('rooms/{room}/messages', [RoomController::class, 'postmessage']);
 Route::get('rooms/{room}/messages', [RoomController::class, 'messages']);
 
 Route::get('rooms', [RoomController::class, 'show']);
-Route::post('rooms/{room}/adduser/{userId}', [RoomController::class, 'addUserToRoom']);
+Route::post('rooms/{room}/add-user/{user}', [RoomController::class, 'addUserToRoom']);
 Route::post('/rooms', [RoomController::class, 'store'])->middleware(middleware: 'auth:sanctum');
-Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/register', [RegisterController::class, 'store']);
 Route::middleware(['web'])->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout']);
+    Route::get('/get/users',[UserController::class,'index']);
 });

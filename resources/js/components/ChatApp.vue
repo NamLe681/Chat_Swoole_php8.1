@@ -90,7 +90,28 @@
         </ul>
         <div>
           <h3>Add user</h3>
-          <button @click="addUser">Add user feature coming soon!</button>
+
+          <button class="Add-user-toggle" @click="showAddUser = !showAddUser">
+            Add user
+          </button>
+
+          <div v-if="showAddUser" class="add-user-container">
+
+            <div class="user-list">
+              <div v-for="u in users" :key="u.id" class="user-item">
+
+                <span>{{ u.name }} (ID: {{ u.id }})</span>
+
+                <button class="add-btn" @click="addUser(u.id)">
+                  Add
+                </button>
+
+              </div>
+            </div>
+
+          </div>
+
+
         </div>
       </div>
     </div>
@@ -147,10 +168,9 @@
 </template>
 
 <script>
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onUnmounted, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import TextareaEmojiPicker from './TextareaEmojiPicker.vue';
-import { onUnmounted } from 'vue';
 import VoiceRecorder from './VoiceRecorder.vue';
 
 export default {
@@ -192,6 +212,7 @@ export default {
     const currentUser = computed(() => store.getters.currentUser);
     const rooms = computed(() => store.getters.rooms);
     const currentRoom = computed(() => store.getters.currentRoom);
+    const users = computed(() => store.state.usersList || []);
     const roomMessages = computed(() =>
       store.getters.messages(currentRoom.value?.id || 0)
     );
@@ -200,7 +221,12 @@ export default {
     );
     const showEmojiPicker = ref(false);
     const showVoiceRecord = ref(false);
+    const showAddUser = ref(false);
+    const selectedUserId = ref('');
 
+    onMounted(() => {
+      store.dispatch('getAllUser');
+    });
 
     watch(roomMessages, () => {
       nextTick(() => {
@@ -295,8 +321,15 @@ export default {
       }
     };
 
-    const addUser = () => {
-      alert('Add user feature coming soon!');
+    const addUser = (uid) => {
+      store.dispatch("addUserToRoom", {
+        userId: uid,
+        roomId: currentRoom.value.id
+      });
+    };
+
+    const getUser = () => {
+      store.dispatch('getAllUser');
     };
 
     const formatTime = (timestamp) => {
@@ -388,7 +421,11 @@ export default {
       showVoiceRecord,
       handleEmojiSelect,
       handleVoiceMessage,
-      isLoadingMore
+      isLoadingMore,
+      showAddUser,
+      getUser,
+      selectedUserId,
+      users,
     };
   }
 };
@@ -714,6 +751,14 @@ export default {
   margin-right: 8px;
 }
 
+.Add-user-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #3498db;
+  text-decoration: underline;
+}
+
 .voice-recorder-container {
   /* position: absolute; */
   bottom: 300px;
@@ -725,6 +770,13 @@ export default {
   position: absolute;
   bottom: 60px;
   right: 50px;
+  z-index: 10;
+}
+
+.add-user-container {
+  position: absolute;
+  bottom: 68%;
+  right: 75px;
   z-index: 10;
 }
 

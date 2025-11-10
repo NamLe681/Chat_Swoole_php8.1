@@ -81,8 +81,12 @@ class RoomController extends Controller
     public function addUserToRoom(Request $request, $room, $userId)
     {
         // $authUser = Auth::user();
+        \Log::info('AddUserToRoom called', [
+            'roomId' => $room,
+            'userId' => $userId
+        ]);
 
-        $userId = $request->input('user_id');
+        // $userId = $request->input('user_id');
 
         $user = User::findOrFail($userId);
 
