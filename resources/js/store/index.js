@@ -9,6 +9,7 @@ export default createStore({
         onlineUsers: {},
         messages: {},
         usersList: [],
+        spotifyResults: [],
     },
 
     getters: {
@@ -19,6 +20,7 @@ export default createStore({
         messages: (state) => (roomId) => state.messages[roomId] || [],
         onlineUsers: (state) => (roomId) => state.onlineUsers[roomId] || [],
         usersList: (state) => state.usersList,
+        spotifyResults: (state) => state.spotifyResults,
     },
 
     mutations: {
@@ -64,6 +66,10 @@ export default createStore({
         setUsersList(state, users) {
             state.usersList = users;
         },
+
+        setSpotifyResults(state, tracks) {
+            state.spotifyResults = tracks;
+        },
     },
 
     actions: {
@@ -76,7 +82,7 @@ export default createStore({
 
                 commit("setUser", res.data.user);
 
-                console.log("State hiện tại:", JSON.stringify(state));
+                // console.log("State hiện tại:", JSON.stringify(state));
 
                 await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -202,7 +208,7 @@ export default createStore({
         async getAllUser({ commit }) {
             try {
                 const res = await axios.get("/api/get/users");
-                commit("setUsersList", res.data); // ✅ LƯU VÀO STATE
+                commit("setUsersList", res.data);
             } catch (error) {
                 console.error("Error fetching users:", error);
             }
@@ -219,5 +225,28 @@ export default createStore({
                 console.error("Error adding user to room:", error);
             }
         },
-    },
-});
+
+        async removeUserFromRoom({ commit, state }, { userId }) { 
+        },
+
+        async searchspotify ({commit,state},{q,type,content}){
+            try{
+                // const q = "20";
+                const type = "track"
+                const res = await axios.get(`/api/spotify/search?q=${q}&type=${type}`);
+                console.log("Kết quả tìm kiếm Spotify:",res.data);
+                commit("setSpotifyResults", res.data.tracks);
+                // const tracksString = res.data.tracks.toString();
+
+                // if (!state.currentRoom) return; 
+                //     await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, {
+                //     content:tracksString,
+                // });
+                return res.data;
+            }
+            catch(error){
+                console.error("Lỗi tìm kiếm Spotify:",error);
+            }
+
+        },
+}});

@@ -70,6 +70,15 @@
               <textarea-emoji-picker @emoji-selected="handleEmojiSelect" />
             </div>
 
+<!-- Test tìm và gửi nhạc -->
+            <button class="music-toggle-btn" @click="showfindMusic = !showfindMusic">
+              🎵
+            </button>
+            <div v-if="showfindMusic" class="music-container">
+              <MusicSpotify @Track-selected="handleMusicSelect"/>
+            </div>
+
+
             <button @click="sendMessage">Gửi</button>
           </div>
         </template>
@@ -172,12 +181,14 @@ import { ref, computed, watch, nextTick, onUnmounted, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import TextareaEmojiPicker from './TextareaEmojiPicker.vue';
 import VoiceRecorder from './VoiceRecorder.vue';
+import MusicSpotify from './MusicSpotify.vue';
 
 export default {
   name: 'ChatApp',
   components: {
     TextareaEmojiPicker,
-    VoiceRecorder
+    VoiceRecorder,
+    MusicSpotify
   },
 
   methods: {
@@ -201,6 +212,7 @@ export default {
     const currentCursor = ref(null);
     const store = useStore();
     const newMessage = ref('');
+    const query = ref('');
     const messagesContainer = ref(null);
     const showCreateRoomModal = ref(false);
     const loginForm = ref({ email: '', password: '' });
@@ -221,6 +233,7 @@ export default {
     );
     const showEmojiPicker = ref(false);
     const showVoiceRecord = ref(false);
+    const showfindMusic = ref(false);
     const showAddUser = ref(false);
     const selectedUserId = ref('');
 
@@ -352,6 +365,11 @@ export default {
       showVoiceRecord.value = false;
     };
 
+    const handleMusicSelect = (track) => {
+      newMessage.value += track.name;
+      showfindMusic.value = false;
+    };
+
     const loadMoreMessages = async () => {
       if (isLoadingMore.value || !hasMoreMessages.value || !currentRoom.value) return;
 
@@ -386,7 +404,32 @@ export default {
       } finally {
         isLoadingMore.value = false;
       }
+
+
     };
+    // const searchSpotify = async () => {
+    //   if (!query.value.trim()) return;
+
+    //   try {
+    //     await store.dispatch('searchspotify', { q: query.value });
+    //     console.log('Đã tìm nhạc:', query.value);
+    //   } catch (error) {
+    //     console.error('Lỗi tìm nhạc Spotify:', error);
+    //   }
+    // };
+
+    const searchSpotify = async () => {
+      if (!query.value.trim()) return;
+
+      try {
+        await store.dispatch('searchspotify', { q: query.value });
+        console.log('Đã tìm nhạc:', query.value);
+      } catch (error) {
+        console.error('Lỗi tìm nhạc Spotify:', error);
+      }
+    };
+
+
 
     // Load rooms and connect WebSocket on mount
     (async () => {
@@ -419,13 +462,17 @@ export default {
       formatTime,
       showEmojiPicker,
       showVoiceRecord,
+      showfindMusic,
       handleEmojiSelect,
       handleVoiceMessage,
+      handleMusicSelect,
       isLoadingMore,
       showAddUser,
       getUser,
       selectedUserId,
       users,
+      searchSpotify,
+      query,
     };
   }
 };
@@ -736,6 +783,7 @@ export default {
 }
 
 .emoji-toggle-btn {
+  position: relative;
   background: transparent;
   border: none;
   /* font-size: 20px; */
@@ -744,9 +792,18 @@ export default {
 }
 
 .voice-recorder-toggle-btn {
+  position: relative;
   background: transparent;
   border: none;
   /* font-size: 20px; */
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.music-toggle-btn{
+  position: relative;
+  background: transparent;
+  border: none;
   cursor: pointer;
   margin-right: 8px;
 }
@@ -771,6 +828,13 @@ export default {
   bottom: 60px;
   right: 50px;
   z-index: 10;
+}
+
+.music-container{
+  position: absolute;
+    bottom: 9%;
+    right: 10%;
+    z-index: 10;
 }
 
 .add-user-container {
