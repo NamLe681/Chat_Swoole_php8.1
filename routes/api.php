@@ -30,6 +30,8 @@ Route::get('rooms/{room}/messages', [RoomController::class, 'messages']);
 
 //Spotify Search route
 Route::get('/spotify/search', [SpotifyController::class, 'search']);
+Route::get('/spotify/track/{id}', [SpotifyController::class, 'getTrack']);
+Route::post('spotify/music/{room}/', [SpotifyController::class, 'sendMusicMessage']);
 
 Route::get('rooms', [RoomController::class, 'show']);
 Route::post('rooms/{room}/add-user/{user}', [RoomController::class, 'addUserToRoom']);

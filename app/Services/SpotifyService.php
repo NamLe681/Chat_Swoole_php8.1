@@ -44,7 +44,7 @@ class SpotifyService
                 'limit' => $limit
             ]);
 
-        $tracks = $response->json('tracks.items');
+        $tracks = $response->json(key: 'tracks.items');
 
         return collect($tracks)->map(function ($track): array {
             return [
@@ -58,4 +58,22 @@ class SpotifyService
             ];
         });
     }
+
+    public function searchTrack(string $id)
+    {
+        $this->getAccessToken();
+        $response = Http::withToken($this->accessToken)
+            ->get("https://api.spotify.com/v1/tracks/{$id}"); 
+    
+        if ($response->failed()) {
+            return [
+                'error' => true,
+                'status' => $response->status(),
+                'message' => $response->json(),
+            ];
+        }
+    
+        return $response->json(); 
+    }
+    
 }
