@@ -24,12 +24,12 @@ class DrawMessageController extends Controller
     {
         $userId = auth()->id();
         $request->validate([
-            'image' => 'required|string',
+            'drawing' => 'required|string',
         ]);
 
-        $imageData = $request->image;
-        $fileName = 'drawing_' . time() . '.png';
-        $path = storage_path('app/public/drawings/' . $fileName);
+        $imageData = $request->drawing;
+        $fileName = 'drawings/drawing_' . time() . '.png';
+        $path = storage_path('app/public/' . $fileName);
 
         $img = str_replace('data:image/png;base64,', '', $imageData);
         file_put_contents($path, base64_decode($img));
@@ -37,7 +37,7 @@ class DrawMessageController extends Controller
         $message = Message::create([
             'room_id' => $room,
             'user_id' => $userId,
-            'content' => $path,
+            'content' => $fileName,
             'type' => 'drawing',
         ]);
 

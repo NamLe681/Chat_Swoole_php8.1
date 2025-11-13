@@ -249,4 +249,18 @@ export default createStore({
             }
 
         },
+
+        async canvasMessage ({state},{ dataUrl}){
+            // console.log('dataUrl trong store:', dataUrl);
+
+            try {
+                const res = await axios.post(`/api/rooms/${state.currentRoom.id}/draw`, {
+                  drawing: dataUrl,
+                });
+                emit('draw-sent', res.data);
+                emit('close');
+              } catch (err) {
+                console.error('Lỗi gửi hình vẽ:', err);
+              }
+        }
 }});

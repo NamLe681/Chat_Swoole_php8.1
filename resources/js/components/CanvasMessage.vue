@@ -5,23 +5,26 @@
       <button @click="saveDrawing">💾 Gửi</button>
       <button @click="$emit('close')">❌ Đóng</button>
     </div>
-
-    <canvas
-      ref="canvas"
-      width="800"
-      height="600"
-      @mousedown="startDrawing"
-      @mouseup="stopDrawing"
-      @mousemove="draw"
-    ></canvas>
+    <input type="color" v-model="strokeColor" />
+    <input type="range" min="1" max="20" v-model="lineWidth" />
+    <canvas ref="canvas" width="800" height="600" @mousedown="startDrawing" @mouseup="stopDrawing"
+      @mousemove="draw"></canvas>
   </div>
+
+
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from "axios";
+import { ref, onMounted, defineEmits } from 'vue';
+import { useStore } from 'vuex';
+import Canvaspicker from './Canvaspicker.vue';
 
+const emit = defineEmits(['close', 'draw-sent']);
 const canvas = ref(null);
+const store = useStore();
+const strokeColor = ref('#000000');
+const lineWidth = ref(2);
+
 let ctx = null;
 let drawing = false;
 
@@ -33,35 +36,29 @@ const startDrawing = (e) => {
 
 const draw = (e) => {
   if (!drawing) return;
+  ctx.lineWidth = lineWidth.value;
+  ctx.strokeStyle = strokeColor.value;
   ctx.lineTo(e.offsetX, e.offsetY);
   ctx.stroke();
+
 };
 
-const stopDrawing = () => {
-  drawing = false;
-};
-
+const stopDrawing = () => (drawing = false);
 const clearCanvas = () => {
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 };
 
-const saveDrawing = () => {
+const saveDrawing = async () => {
   const dataUrl = canvas.value.toDataURL('image/png');
-  try {
-        const res = axios.post(`/api/rooms/${this.roomId}/draw`, {
-          image: dataUrl,
-        });
-        console.log("✅ Sent drawing:", res.data);
-      } catch (error) {
-        console.error("❌ Send failed:", error);
-      }
-    $emit('draw-selected', dataUrl);
+  await store.dispatch('canvasMessage', { dataUrl });
 };
 
 onMounted(() => {
   ctx = canvas.value.getContext('2d');
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
+  // ctx.strokeStyle = '#000';
+  // ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 });
 </script>
 
@@ -74,7 +71,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 999;
 }
 
 .canvas-header {
@@ -82,6 +79,13 @@ onMounted(() => {
   top: 20px;
   display: flex;
   gap: 10px;
+}
+
+.canvas-picker {
+  position: absolute;
+  top: 5%;
+  right: 30%;
+  z-index: 10000;
 }
 
 canvas {

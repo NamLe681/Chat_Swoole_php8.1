@@ -48,8 +48,8 @@
               </div>
               <div class="message-content">
                 <img
-                  v-if="message.type === 'image'"
-                  :src="`/storage/${message.content}`"
+                  v-if="message.type === 'drawing'"
+                  :src="getDrawUrl(message.content)"
                   alt="drawing"
                   class="drawing-preview"
                 />
@@ -76,12 +76,12 @@
               <textarea-emoji-picker @emoji-selected="handleEmojiSelect" />
             </div>
 
-<!-- Test tìm và gửi nhạc -->
+            <!-- Test tìm và gửi nhạc -->
             <button class="music-toggle-btn" @click="showfindMusic = !showfindMusic">
               🎵
             </button>
             <div v-if="showfindMusic" class="music-container">
-              <MusicSpotify @Track-selected="handleMusicSelect"/>
+              <MusicSpotify @Track-selected="handleMusicSelect" />
             </div>
 
             <!-- Nút mở canvas -->
@@ -90,11 +90,7 @@
             </button>
 
             <!-- Thay vì render trong message-input, render ở ngoài để overlay -->
-            <CanvasMessage
-              v-if="showDraw"
-              @close="showDraw = false"
-              @draw-selected="handleDraw"
-            />
+            <CanvasMessage v-if="showDraw" @close="showDraw = false" @draw-selected="handleDraw" />
 
             <button @click="sendMessage">Gửi</button>
           </div>
@@ -224,6 +220,13 @@ export default {
       }
       return `/storage/${content}`;
     },
+
+    getDrawUrl(content){
+      if (content.startsWith('http')) {
+        return content;
+      }
+      return `/storage/${content}`;
+    }
   },
   setup() {
     const isLoadingMore = ref(false);
@@ -832,7 +835,7 @@ export default {
   margin-right: 8px;
 }
 
-.music-toggle-btn{
+.music-toggle-btn {
   position: relative;
   background: transparent;
   border: none;
@@ -840,7 +843,7 @@ export default {
   margin-right: 8px;
 }
 
-.draw-toggle-btn{
+.draw-toggle-btn {
   position: relative;
   background: transparent;
   border: none;
@@ -870,18 +873,18 @@ export default {
   z-index: 10;
 }
 
-.music-container{
+.music-container {
   position: absolute;
-    bottom: 9%;
-    right: 10%;
-    z-index: 10;
+  bottom: 9%;
+  right: 10%;
+  z-index: 10;
 }
 
-.draw-container{
+.draw-container {
   position: absolute;
-    bottom: 9%;
-    right: 10%;
-    z-index: 10;
+  bottom: 9%;
+  right: 10%;
+  z-index: 10;
 }
 
 .add-user-container {
@@ -904,5 +907,13 @@ export default {
   padding: 10px;
   display: flex;
   flex-direction: column;
+}
+
+.drawing-preview {
+  display: flex;
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 </style>
