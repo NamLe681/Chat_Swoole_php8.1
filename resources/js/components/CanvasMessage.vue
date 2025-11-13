@@ -17,7 +17,6 @@
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue';
 import { useStore } from 'vuex';
-import Canvaspicker from './Canvaspicker.vue';
 
 const emit = defineEmits(['close', 'draw-sent']);
 const canvas = ref(null);

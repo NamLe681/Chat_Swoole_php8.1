@@ -47,16 +47,12 @@
                 <span class="message-time">{{ formatTime(message.created_at) }}</span>
               </div>
               <div class="message-content">
-                <img
-                  v-if="message.type === 'drawing'"
-                  :src="getDrawUrl(message.content)"
-                  alt="drawing"
-                  class="drawing-preview"
-                />
+
                 <audio v-if="message.type === 'voice'" :src="getVoiceUrl(message.content)" controls></audio>
                 <span v-else>{{ message.content }}</span>
+                <img v-if="message.type === 'drawing'" :src="getDrawUrl(message.content)" alt="drawing"
+                  class="drawing-preview" />
               </div>
-
             </div>
           </div>
 
@@ -221,7 +217,7 @@ export default {
       return `/storage/${content}`;
     },
 
-    getDrawUrl(content){
+    getDrawUrl(content) {
       if (content.startsWith('http')) {
         return content;
       }
