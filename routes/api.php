@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\API\LoginController;
-use App\Http\Controllers\API\RegisterController;
-use App\Http\Controllers\API\Roomcontroller;
-use App\Http\Controllers\API\VoiceMessageController;
+use App\Http\Controllers\Api\LoginController;
+use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\Roomcontroller;
+use App\Http\Controllers\Api\VoiceMessageController;
 use App\Http\Controllers\Api\SpotifyController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DrawMessageController;

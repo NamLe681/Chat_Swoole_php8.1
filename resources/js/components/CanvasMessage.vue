@@ -50,12 +50,10 @@ const clearCanvas = () => {
 const saveDrawing = async () => {
   const dataUrl = canvas.value.toDataURL('image/png');
   await store.dispatch('canvasMessage', { dataUrl });
-};
+}; 
 
 onMounted(() => {
   ctx = canvas.value.getContext('2d');
-  // ctx.strokeStyle = '#000';
-  // ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 });
@@ -65,7 +63,7 @@ onMounted(() => {
 .canvas-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.461);
   display: flex;
   flex-direction: column;
   align-items: center;
