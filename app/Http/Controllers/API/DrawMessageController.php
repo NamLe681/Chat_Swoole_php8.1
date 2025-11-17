@@ -24,28 +24,31 @@ class DrawMessageController extends Controller
 
     public function sendDrawingMessage(Request $request, $room)
     {
-        $userId = auth()->id();
+
         $request->validate([
             'drawing' => 'required|string',
         ]);
 
-        $imageData = $request->drawing;
-        $fileName = 'drawings/drawing_' . time() . '.png';
-        $path = storage_path('app/public/' . $fileName);
+        $userId = auth()->id();
+        $drawing = $request->drawing;
+        try {
+            $uploaded = Cloudinary::upload($drawing, [
+                'public_id' => 'drawing_' . time(),
+            ]);
 
-        $img = str_replace('data:image/png;base64,', '', $imageData);
-        file_put_contents($path, base64_decode($img));
-        // dump('path', $path);
-        // dump('img',$img);
-        $imageToCloudinary = Cloudinary::upload($path, [
-            'folder' => 'drawings',
-            'public_id' => 'drawing_' . time(),
-        ]);
+            $url = $uploaded->getSecurePath();
+            if (!$url) {
+                return response()->json(['error' => 'Upload failed'], 500);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
 
         $message = Message::create([
             'room_id' => $room,
             'user_id' => $userId,
-            'content' => $imageToCloudinary->getSecurePath(),
+            'content' => $url,
             'type' => 'drawing',
         ]);
 
@@ -53,6 +56,8 @@ class DrawMessageController extends Controller
 
         return response()->json($message, 201);
     }
+
+     
 
     /**
      * Display the specified resource.

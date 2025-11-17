@@ -49,7 +49,7 @@
               <div class="message-content">
 
                 <audio v-if="message.type === 'voice'" :src="getVoiceUrl(message.content)" controls></audio>
-                <span v-else>{{ message.content }}</span>
+                <span v-if="message.type === 'text'">{{ message.content }}</span>
                 <img v-if="message.type === 'drawing'" :src="getDrawUrl(message.content)" alt="drawing"
                   class="drawing-preview" />
               </div>
