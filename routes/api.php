@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\API\LoginController;
-use App\Http\Controllers\API\RegisterController;
-use App\Http\Controllers\API\Roomcontroller;
-use App\Http\Controllers\API\VoiceMessageController;
+use App\Http\Controllers\Api\LoginController;
+use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\Roomcontroller;
+use App\Http\Controllers\Api\VoiceMessageController;
 use App\Http\Controllers\Api\SpotifyController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\DrawMessageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +33,9 @@ Route::get('rooms/{room}/messages', [RoomController::class, 'messages']);
 Route::get('/spotify/search', [SpotifyController::class, 'search']);
 Route::get('/spotify/track/{id}', [SpotifyController::class, 'getTrack']);
 Route::post('spotify/music/{room}/', [SpotifyController::class, 'sendMusicMessage']);
+
+//Draw sending message
+Route::post('/rooms/{room}/draw', [DrawMessageController::class, 'sendDrawingMessage']);
 
 Route::get('rooms', [RoomController::class, 'show']);
 Route::post('rooms/{room}/add-user/{user}', [RoomController::class, 'addUserToRoom']);

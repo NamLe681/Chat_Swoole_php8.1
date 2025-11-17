@@ -47,10 +47,12 @@
                 <span class="message-time">{{ formatTime(message.created_at) }}</span>
               </div>
               <div class="message-content">
-                <audio v-if="message.type === 'voice'" :src="getVoiceUrl(message.content)" controls></audio>
-                <span v-else>{{ message.content }}</span>
-              </div>
 
+                <audio v-if="message.type === 'voice'" :src="getVoiceUrl(message.content)" controls></audio>
+                <span v-if="message.type === 'text'">{{ message.content }}</span>
+                <img v-if="message.type === 'drawing'" :src="getDrawUrl(message.content)" alt="drawing"
+                  class="drawing-preview" />
+              </div>
             </div>
           </div>
 
@@ -70,14 +72,21 @@
               <textarea-emoji-picker @emoji-selected="handleEmojiSelect" />
             </div>
 
-<!-- Test tìm và gửi nhạc -->
+            <!-- Test tìm và gửi nhạc -->
             <button class="music-toggle-btn" @click="showfindMusic = !showfindMusic">
               🎵
             </button>
             <div v-if="showfindMusic" class="music-container">
-              <MusicSpotify @Track-selected="handleMusicSelect"/>
+              <MusicSpotify @Track-selected="handleMusicSelect" />
             </div>
 
+            <!-- Nút mở canvas -->
+            <button class="draw-toggle-btn" @click="showDraw = true">
+              🖌️ Vẽ
+            </button>
+
+            <!-- Thay vì render trong message-input, render ở ngoài để overlay -->
+            <CanvasMessage v-if="showDraw" @close="showDraw = false" @draw-selected="handleDraw" />
 
             <button @click="sendMessage">Gửi</button>
           </div>
@@ -182,13 +191,15 @@ import { useStore } from 'vuex';
 import TextareaEmojiPicker from './TextareaEmojiPicker.vue';
 import VoiceRecorder from './VoiceRecorder.vue';
 import MusicSpotify from './MusicSpotify.vue';
+import CanvasMessage from './CanvasMessage.vue';
 
 export default {
   name: 'ChatApp',
   components: {
     TextareaEmojiPicker,
     VoiceRecorder,
-    MusicSpotify
+    MusicSpotify,
+    CanvasMessage,
   },
 
   methods: {
@@ -205,6 +216,13 @@ export default {
       }
       return `/storage/${content}`;
     },
+
+    getDrawUrl(content) {
+      if (content.startsWith('http')) {
+        return content;
+      }
+      return `/storage/${content}`;
+    }
   },
   setup() {
     const isLoadingMore = ref(false);
@@ -234,6 +252,7 @@ export default {
     const showEmojiPicker = ref(false);
     const showVoiceRecord = ref(false);
     const showfindMusic = ref(false);
+    const showDraw = ref(false);
     const showAddUser = ref(false);
     const selectedUserId = ref('');
 
@@ -370,6 +389,16 @@ export default {
       showfindMusic.value = false;
     };
 
+    const handleDraw = async (dataUrl) => {
+      showDraw.value = false;
+
+      await store.dispatch('sendMessage', {
+        content: dataUrl,
+        type: 'image'
+      });
+    };
+
+
     const loadMoreMessages = async () => {
       if (isLoadingMore.value || !hasMoreMessages.value || !currentRoom.value) return;
 
@@ -463,9 +492,11 @@ export default {
       showEmojiPicker,
       showVoiceRecord,
       showfindMusic,
+      showDraw,
       handleEmojiSelect,
       handleVoiceMessage,
       handleMusicSelect,
+      handleDraw,
       isLoadingMore,
       showAddUser,
       getUser,
@@ -800,7 +831,15 @@ export default {
   margin-right: 8px;
 }
 
-.music-toggle-btn{
+.music-toggle-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.draw-toggle-btn {
   position: relative;
   background: transparent;
   border: none;
@@ -830,11 +869,18 @@ export default {
   z-index: 10;
 }
 
-.music-container{
+.music-container {
   position: absolute;
-    bottom: 9%;
-    right: 10%;
-    z-index: 10;
+  bottom: 9%;
+  right: 10%;
+  z-index: 10;
+}
+
+.draw-container {
+  position: absolute;
+  bottom: 9%;
+  right: 10%;
+  z-index: 10;
 }
 
 .add-user-container {
@@ -857,5 +903,13 @@ export default {
   padding: 10px;
   display: flex;
   flex-direction: column;
+}
+
+.drawing-preview {
+  display: flex;
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 </style>

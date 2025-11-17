@@ -96,19 +96,19 @@ export default createStore({
         },
 
         async register({ commit }, userData) {
-          try {
-              await axios.get('/sanctum/csrf-cookie');
-              
-              await axios.post('/api/register', userData);
-             
-             const response = await axios.get('/api/user');
-              commit('SET_USER', response.data);
-              return response.data;
-          } catch (error) {
-              console.error('Lỗi đăng Ký:', error);
-              throw error;
-          }
-      },
+            try {
+                await axios.get("/sanctum/csrf-cookie");
+
+                await axios.post("/api/register", userData);
+
+                const response = await axios.get("/api/user");
+                commit("SET_USER", response.data);
+                return response.data;
+            } catch (error) {
+                console.error("Lỗi đăng Ký:", error);
+                throw error;
+            }
+        },
 
         async fetchMoreMessages({ commit }, { roomId, cursor }) {
             const url = cursor
@@ -153,9 +153,6 @@ export default createStore({
             if (!state.currentRoom) return console.error("No room selected");
 
             const roomId = state.currentRoom.id;
-            // console.log('Joining presence-chat.' + roomId);
-            // console.log('user', state.user.id);
-            // console.log('message', state.messages[roomId]);
 
             const res1 = await axios.get(`/api/rooms/${roomId}/messages`);
 
@@ -226,27 +223,35 @@ export default createStore({
             }
         },
 
-        async removeUserFromRoom({ commit, state }, { userId }) { 
-        },
+        async removeUserFromRoom({ commit, state }, { userId }) {},
 
-        async searchspotify ({commit,state},{q,type,content}){
-            try{
-                // const q = "20";
-                const type = "track"
-                const res = await axios.get(`/api/spotify/search?q=${q}&type=${type}`);
-                console.log("Kết quả tìm kiếm Spotify:",res.data);
+        async searchspotify({ commit, state }, { q, type, content }) {
+            try {
+                const type = "track";
+                const res = await axios.get(
+                    `/api/spotify/search?q=${q}&type=${type}`
+                );
+                console.log("Kết quả tìm kiếm Spotify:", res.data);
                 commit("setSpotifyResults", res.data.tracks);
-                // const tracksString = res.data.tracks.toString();
-
-                // if (!state.currentRoom) return; 
-                //     await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, {
-                //     content:tracksString,
-                // });
                 return res.data;
+            } catch (error) {
+                console.error("Lỗi tìm kiếm Spotify:", error);
             }
-            catch(error){
-                console.error("Lỗi tìm kiếm Spotify:",error);
-            }
-
         },
-}});
+
+        async canvasMessage({ state }, { dataUrl }) {
+            try {
+                const res = await axios.post(
+                    `/api/rooms/${state.currentRoom.id}/draw`,
+                    {
+                        drawing: dataUrl,
+                    }
+                );
+                emit("draw-sent", res.data);
+                emit("close");
+            } catch (err) {
+                console.error("Lỗi gửi hình vẽ:", err);
+            }
+        },
+    },
+});
