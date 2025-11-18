@@ -101,7 +101,7 @@ export default createStore({
 
                 await axios.post("/api/register", userData);
 
-                const response = await axios.get("/api/user");
+                const response = await axios.get("/api/login");
                 commit("SET_USER", response.data);
                 return response.data;
             } catch (error) {

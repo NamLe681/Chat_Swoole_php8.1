@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\RegisterController;
-use App\Http\Controllers\Api\Roomcontroller;
+use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\VoiceMessageController;
 use App\Http\Controllers\Api\SpotifyController;
 use App\Http\Controllers\Api\UserController;
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('messages/voice/{room}', [VoiceMessageController::class, 'storeVoice'])->middleware(middleware: 'auth:sanctum');
-Route::apiResource('rooms', 'App\Http\Controllers\API\RoomController');
+Route::apiResource('rooms', RoomController::class);
 Route::post('rooms/{room}/messages', [RoomController::class, 'postmessage']);
 Route::get('rooms/{room}/messages', [RoomController::class, 'messages']);
 

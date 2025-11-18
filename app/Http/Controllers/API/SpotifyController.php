@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\SpotifyService;
 use App\Models\Message;
 use App\Events\ChatMessageEvent;
+use Illuminate\Broadcasting\BroadcastException;
 
 class SpotifyController extends Controller
 {
@@ -52,7 +53,14 @@ class SpotifyController extends Controller
             'type' => 'music',
         ]);
 
-        broadcast(new ChatMessageEvent($message->load('user')));
+        try {
+            broadcast(new ChatMessageEvent($message->load('user')));
+        } catch (BroadcastException $e) {
+            \Log::warning('Broadcast failed for MusicMessageEvent', [
+                'message_id' => $message->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json($message, 201);
     }

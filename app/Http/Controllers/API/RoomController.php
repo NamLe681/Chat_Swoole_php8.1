@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChatRoom;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,7 +73,15 @@ class RoomController extends Controller
             'content' => $validated['content'],
             'type' => 'text',
         ]);
-        broadcast(new ChatMessageEvent($message->load('user')));
+
+        try {
+            broadcast(new ChatMessageEvent($message->load('user')));
+        } catch (BroadcastException $e) {
+            \Log::warning('Broadcast failed for ChatMessageEvent', [
+                'message_id' => $message->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json($message, 201);
 

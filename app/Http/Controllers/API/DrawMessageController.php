@@ -6,6 +6,7 @@ use App\Events\ChatMessageEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Http\Request;
 
 class DrawMessageController extends Controller
@@ -52,7 +53,14 @@ class DrawMessageController extends Controller
             'type' => 'drawing',
         ]);
 
-        broadcast(new ChatMessageEvent($message->load('user')));
+        try {
+            broadcast(new ChatMessageEvent($message->load('user')));
+        } catch (BroadcastException $e) {
+            \Log::warning('Broadcast failed for DrawMessageEvent', [
+                'message_id' => $message->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json($message, 201);
     }

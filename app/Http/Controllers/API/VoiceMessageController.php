@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\ChatMessageEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,7 +16,7 @@ class VoiceMessageController extends Controller
         $request->merge(['room_id' => (int) $request->room_id]);
 
         $request->validate([
-            'voice' => 'required|file|mimes:webm,ogg,mpeg,mp4,wav,mp3|max:20480',
+            'voice' => 'required|file|mimetypes:audio/webm,audio/ogg,audio/mpeg,video/mp4,audio/wav,audio/mp3|max:20480',
             'room_id' => 'required|integer',
         ]);
 
@@ -28,7 +29,14 @@ class VoiceMessageController extends Controller
             'content' => $path,
         ]);
 
-        broadcast(new ChatMessageEvent(message: $message->load(relations: 'user')));
+        try {
+            broadcast(new ChatMessageEvent(message: $message->load(relations: 'user')));
+        } catch (BroadcastException $e) {
+            \Log::warning('Broadcast failed for VoiceMessageEvent', [
+                'message_id' => $message->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'message' => 'Voice uploaded successfully',
