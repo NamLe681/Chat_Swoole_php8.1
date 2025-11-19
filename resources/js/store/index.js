@@ -1,6 +1,32 @@
 import { createStore } from "vuex";
 import axios from "axios";
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyB3-Czd4q3rcTuB2TmjTHFmCvXJJpTFA-Y",
+    authDomain: "test-ea1b1.firebaseapp.com",
+    projectId: "test-ea1b1",
+    storageBucket: "test-ea1b1.firebasestorage.app",
+    messagingSenderId: "1091800666098",
+    appId: "1:1091800666098:web:d9dd24250cc13ab58fe56b",
+    measurementId: "G-1TL4VH11D0"
+  };
+  
+  // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
 axios.defaults.withCredentials = true;
+
+
+// Nhận notification khi tab đang active
+onMessage(messaging, (payload) => {
+    console.log("Foreground notification:", payload);
+    alert(`${payload.notification.title}: ${payload.notification.body}`);
+  });
+
+
 export default createStore({
     state: {
         user: null,
@@ -70,10 +96,12 @@ export default createStore({
         setSpotifyResults(state, tracks) {
             state.spotifyResults = tracks;
         },
+
+        
     },
 
     actions: {
-        async login({ commit, state }, credentials) {
+        async login({ commit, state, dispatch }, credentials) {
             try {
                 await axios.get("/sanctum/csrf-cookie");
 
@@ -82,6 +110,7 @@ export default createStore({
 
                 commit("setUser", res.data.user);
 
+                await dispatch("registerFcm");
                 // console.log("State hiện tại:", JSON.stringify(state));
 
                 await new Promise((resolve) => setTimeout(resolve, 300));
@@ -200,6 +229,7 @@ export default createStore({
             await axios.post(`/api/rooms/${state.currentRoom.id}/messages`, {
                 content,
             });
+
         },
 
         async getAllUser({ commit }) {
@@ -253,5 +283,37 @@ export default createStore({
                 console.error("Lỗi gửi hình vẽ:", err);
             }
         },
+
+        async registerFcm() {
+            try {
+              const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            
+              const token = await getToken(messaging, {
+                vapidKey: "BNtxDQr9QeaKZEMVWQknC4mEiuMAff--gf78gYGwg45S4GHXjV4zewsxjE3z0wNdHF_YF7uwsJKmubfiLNAamC4",
+                serviceWorkerRegistration: swRegistration
+              });
+              
+              
+              if (token) {
+                await axios.post("/api/save-fcm-token", { token });
+                console.log("FCM token registered:", token);
+              }
+            } catch (err) {
+              console.error("FCM registration error:", err);
+            }
+          },
+
+        async senNoti(){
+            try {
+                const res = await axios.post("/api/send-notification", {
+                    token:"e1M7kJZcobfTugNn8x9WL5:APA91bHlJoQsdrSBvBQYzmdMwGLpip0p1WX5hLSAIbCM5E3LWZTPZmTMf4lYgLPiu2fbl_6jqs0d2iWPMTdAQTA3cBd4mF1_goXuxy_YUi-7L0okmevQn5E",
+                    title: "Test Notification",
+                    body: "This is a test notification from Vuex action.",
+                });
+                console.log("Notification sent:", res.data);
+            } catch (err) {
+                console.error("Error sending notification:", err);
+            }
+        }
     },
 });

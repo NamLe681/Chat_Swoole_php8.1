@@ -304,6 +304,8 @@ export default {
       store.dispatch('sendMessage', {
         content: newMessage.value
       });
+      const body = newMessage.value;
+      store.dispatch('senNoti',body);
       newMessage.value = '';
     };
 

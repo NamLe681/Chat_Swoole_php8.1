@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\VoiceMessageController;
 use App\Http\Controllers\Api\SpotifyController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DrawMessageController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -46,3 +48,7 @@ Route::middleware(['web'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::get('/get/users',[UserController::class,'index']);
 });
+
+// Firebase Cloud Messaging Routes
+Route::post('/send-notification', [NotificationController::class, 'send']);
+Route::post('/save-fcm-token',[NotificationController::class,'saveToken'])->middleware('auth:sanctum');
