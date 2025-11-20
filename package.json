@@ -18,6 +18,7 @@
         "vue": "^3.2.37"
     },
     "dependencies": {
+        "@kyvg/vue3-notification": "^3.4.2",
         "cloudinary": "^2.8.0",
         "emoji-mart-vue-fast": "^15.0.5",
         "firebase": "^12.6.0",

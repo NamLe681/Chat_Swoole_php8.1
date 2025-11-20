@@ -1,8 +1,9 @@
 import { createStore } from "vuex";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics } from "firebase/analytics"
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { notify } from "@kyvg/vue3-notification";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB3-Czd4q3rcTuB2TmjTHFmCvXJJpTFA-Y",
@@ -17,13 +18,15 @@ const firebaseConfig = {
   // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const messaging = getMessaging(app);
-axios.defaults.withCredentials = true;
+    axios.defaults.withCredentials = true;
 
 
-// Nhận notification khi tab đang active
 onMessage(messaging, (payload) => {
     console.log("Foreground notification:", payload);
-    alert(`${payload.notification.title}: ${payload.notification.body}`);
+    notify({
+        title: `${payload.notification.title}: ${payload.notification.body}`,
+      });
+    // alert(`${payload.notification.title}: ${payload.notification.body}`);
   });
 
 
@@ -303,14 +306,16 @@ export default createStore({
             }
           },
 
-        async senNoti(){
+        async senNoti({ commit }, payload){
+            const body = payload;
+            // console.log('Gửi notification với nội dung:', body);
             try {
                 const res = await axios.post("/api/send-notification", {
                     token:"e1M7kJZcobfTugNn8x9WL5:APA91bHlJoQsdrSBvBQYzmdMwGLpip0p1WX5hLSAIbCM5E3LWZTPZmTMf4lYgLPiu2fbl_6jqs0d2iWPMTdAQTA3cBd4mF1_goXuxy_YUi-7L0okmevQn5E",
                     title: "Test Notification",
-                    body: "This is a test notification from Vuex action.",
+                    body:body,
                 });
-                console.log("Notification sent:", res.data);
+                // console.log("Notification sent:", res.data);
             } catch (err) {
                 console.error("Error sending notification:", err);
             }

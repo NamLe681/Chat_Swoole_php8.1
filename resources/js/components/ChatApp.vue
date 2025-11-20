@@ -15,7 +15,6 @@
             <li v-for="room in rooms" :key="room.id" :class="{ active: currentRoom && currentRoom.id === room.id }"
               @click="selectRoom(room.id)">
               {{ room.name }}
-              <span class="users-count">({{ room.users_count || 0 }})</span>
             </li>
           </ul>
 
@@ -87,6 +86,7 @@
 
             <!-- Thay vì render trong message-input, render ở ngoài để overlay -->
             <CanvasMessage v-if="showDraw" @close="showDraw = false" @draw-selected="handleDraw" />
+            <notifications position="bottom right" class="noti-style" />
 
             <button @click="sendMessage">Gửi</button>
           </div>
@@ -913,5 +913,12 @@ export default {
   max-height: 300px;
   border-radius: 8px;
   border: 1px solid #ccc;
+}
+
+.noti-style{
+  top: -5px;
+  right: -5px;
+  border-radius: 50%;
+  padding:10px;
 }
 </style>
